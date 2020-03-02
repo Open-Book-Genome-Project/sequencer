@@ -13,13 +13,13 @@ def ngram(tokens, n=2):
     ngrams = zip(*[tokens[i:] for i in range(n)])
     return [" ".join(ngram) for ngram in ngrams]
 
-def sanitize(fulltext):
+def clean(fulltext):
     return fulltext.lower().replace('\n-', '').replace('\n', ' ').translate(None, string.punctuation).decode('utf-8')
 
-def sequence(fulltext, n=1):
+def sequence(fulltext, n=1, include_stopwords=True):
     """Sequence the genome of this book"""
     freqmap = defaultdict(int)
-    words = [w.strip() for w in sanitize(fulltext).split(' ') if len(w) > 1 and w not in STOP_WORDS]
+    words = [w.strip() for w in clean(fulltext).split(' ') if len(w) > 1 and include_stopwords or w not in STOP_WORDS]
     corpus = words if n == 1 else ngram(words, n=n)
 
     for s in corpus:
@@ -29,6 +29,3 @@ def sequence(fulltext, n=1):
             freqmap[s] += 1
     return sorted(freqmap, key=freqmap.get, reverse=True)
 
-def fingerprint(fulltext_filename='glutmasteringinf00wrig_djvu.txt', n=1):
-    with open(fulltext_filename) as book:
-        return sequence(book.read(), n=n)
