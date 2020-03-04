@@ -53,4 +53,4 @@ OBGP is an independent, community-run, not-for-profit committee of open-source a
 
 Here's a corpus of ~800k Archive.org item identifiers of public domain books (of varying quality/appearance/language) which may be used for testing your module:
 
-https://archive.org/download/869k-public-domain-book-urls-dataset/2017-12-26_public-domain-books-dataset_800k-identifiers.csv (~19m
+https://archive.org/download/869k-public-domain-book-urls-dataset/2017-12-26_public-domain-books-dataset_800k-identifiers.csv (~19mb)
