@@ -1,3 +1,5 @@
 *.pyc
 *~
 settings.cfg
+dist/
+obgp.egg-info/

@@ -4,7 +4,7 @@
 import time
 from functools import partial
 from internetarchive import get_session, modify_metadata, get_item, search_items
-import terms
+from bgp.modules import terms
 from config import S3_KEYS
 
 # A list of tasks/transformations which may be run
