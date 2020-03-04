@@ -17,7 +17,9 @@ Each month, the OBGP Sequencer™ gets run against the fulltext of more than 1M 
 4. [Create a new module](https://github.com/Open-Book-Genome-Project/sequencer/new/master) to the `modules/` directory
 5. Test your module locally using [Internet Archive's unrestricted collection of ~800k books](https://docs.google.com/document/d/10cNGGYrDFu0BJg-pUYYzKpjB1TWkqKspTZl2YG-yLJ4/edit?fbclid=IwAR3fx-LPu7D4zU1FbcehX2bIY1fNU_nvbqOiy5QpS0yGv_ILhVr73WHD-BI#heading=h.36kkw3g3gzos)
 5. [open a Pull Request](https://github.com/Open-Book-Genome-Project/sequencer/compare) so your contribution may be reviewed.
-6. Questions? Please [open an issue](https://github.com/Open-Book-Genome-Project/sequencer/issues/new) or [Request a Slack Invite](mailto:hi@mek.fyi)
+
+## Questions?
+Please [open an issue](https://github.com/Open-Book-Genome-Project/sequencer/issues/new) and [request a slack invite](mailto:hi@mek.fyi)
 
 ## Installation
 
