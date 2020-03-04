@@ -32,6 +32,7 @@ pip install obgp
 ```
 git clone https://github.com/Open-Book-Genome-Project/sequencer.git  # get the code
 virtualenv venv && source venv/bin/activate  # setup a virtual environment
+cd sequencer  # change into project directory
 pip install -e .  # install the library (and re-run in project root as you make changes)
 ```
 ## Usage
