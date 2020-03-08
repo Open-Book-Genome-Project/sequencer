@@ -15,21 +15,21 @@ from bgp.modules.terms import (
 
 IA = ia.get_session({'s3': S3_KEYS})
 
+def get_book_items(query, rows=100, page=1):
+    """
+    :param str query: an search query for selecting/faceting books
+    :param int rows: limit how many results returned
+    :param int page: starting page to offset search results
+    :return: An `internetarchive` Item
+    :rtype: `internetarchive` Item
+    """
+    params = {'page': page, 'rows': rows, 'scope': 'all'}
+    return IA.search_items(query, params=params).iter_as_items()
+    
 class Sequencer:
 
     def __init__(self, pipeline):
         self.pipeline = pipeline
-
-    def get_book_items(self, query, rows=100, page=1):
-        """
-        :param str query: an search query for selecting/faceting books
-        :param int rows: limit how many results returned
-        :param int page: starting page to offset search results
-        :return: An `internetarchive` Item
-        :rtype: `internetarchive` Item
-        """
-        params = {'page': page, 'rows': rows, 'scope': 'all'}
-        return IA.search_items(query, params=params).iter_as_items()
 
     def sequence(self, book):
         """
@@ -45,7 +45,6 @@ class Sequencer:
         for p in sq.pipeline:
             sq.pipeline[p].run(fulltext)
         return sq
-
 
 class Sequence:
 
@@ -63,8 +62,7 @@ class Sequence:
             ia.upload(
                 itemid, {'%s_%s' % (self.book.identifier, filename): tmp},
                 access_key=S3_KEYS.get('access'),
-                secret_key=S3_KEYS.get('secret')
-            )
+                secret_key=S3_KEYS.get('secret'))
 
 
 def test_sequence_item(itemid):
