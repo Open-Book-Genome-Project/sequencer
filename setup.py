@@ -7,7 +7,7 @@ OBGP: Open Book Genome Project
 import codecs
 import os
 import re
-from setuptools import setup
+import setuptools
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -35,11 +35,12 @@ def requirements():
     with open(reqtxt) as f:
         return f.read().split()
                             
-setup(
+setuptools.setup(
     name='obgp',
     version=find_version("bgp", "__init__.py"),
     description="Open Book Genome Project",
-    long_description=read('README.rst'),
+    long_description=read('README.md'),
+    long_description_content_type="text/markdown",
     author='OBGP',
     author_email='michael.karpeles@gmail.com',
     url='https://github.com/Open-Book-Genome-Project/sequencer',
