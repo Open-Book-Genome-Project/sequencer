@@ -1,48 +1,63 @@
 #!/usr/bin/env python
 #-*-coding: utf-8 -*-
 
+
 import time
-from functools import partial
-from internetarchive import get_session, modify_metadata, get_item, search_items
-from bgp.modules import terms
-from config import S3_KEYS
+from internetarchive import get_session, get_item, search_items
+from bgp.config import S3_KEYS
+from bgp.modules.terms import (
+    NGramProcessor, WordFreqModule, UrlExtractorModule, IsbnExtractorModule,
+    STOP_WORDS
+)
 
-# A list of tasks/transformations which may be run
-TASKS = {
-    'frequency': {
-        'function': terms.sequence,
-        'args': ['fulltext']
-    },
-    '2-grams': {
-        'function': partial(terms.sequence, n=2, include_stopwords=False),
-        'args': ['fulltext']
-    }
-}
+class Sequencer:
 
-def get_fulltext(item):
-    filename = item.id
-    with open(filename) as book:
-        return sequence(book.read(), n=n)
+    def __init__(self, pipeline):
+        self.pipeline = pipeline
+        self.ia = get_session({'s3': S3_KEYS})
 
-
-def get_lendable_book_items(page=1, rows=100, collection='printdisabled'):
-    s = get_session({'s3': S3_KEYS})
-    params = {'page': page, 'rows': rows, 'scope': 'all'}
-    q = 'collection:%s' % collection
-    return s.search_items(q, params=params).iter_as_items()
+    def get_book_items(self, query, rows=100, page=1):
+        """
+        :param str query: an search query for selecting/faceting books
+        :param int rows: limit how many results returned
+        :param int page: starting page to offset search results
+        :return: An `internetarchive` Item
+        :rtype: `internetarchive` Item
+        """
+        params = {'page': page, 'rows': rows, 'scope': 'all'}
+        return self.ia.search_items(query, params=params).iter_as_items()
 
 
-def pipeline(tasks=None, page=1, rows=None):
-    items = get_lendable_book_items(page=page, rows=rows)
-    for i in items:
-        if tasks:
-            for t in tasks:
-                # For now, assume tasks func takes fulltext
-                fulltext = i.download(formats=['DjVuTXT'])
-                #TASKS[t]['function']()
-                
+    def run(self, query='collection:printdisabled', rows=100, page=1):
+        """
+        :param [NGramProcessor] pipeline: a list of NGramProcessors that run modules
+        :param str query: an search query for selecting/faceting books
+        :param int rows: limit how many results returned
+        :param int page: starting page to offset search results
+        """
+        items = self.get_book_items(query, rows=rows, page=page)
+        for i in items:
+            fulltext = i.download(formats=['DjVuTXT'], return_responses=True)[0].text
+            for p in self.pipeline:
+                self.pipeline[p].run(fulltext)
+        return self
+
+    @property
+    def results(self):
+        return {p: self.pipeline[p].results for p in self.pipeline}
+
+def test_sequencer(itemid='hpmor'):
+    return Sequencer({
+        '2grams': NGramProcessor(modules={
+            'term_freq': WordFreqModule()
+        }, n=2, stop_words=STOP_WORDS),
+        '1grams': NGramProcessor(modules={
+            'term_freq': WordFreqModule(),
+            'isbns': IsbnExtractorModule(),
+            'urls': UrlExtractorModule()
+        }, n=1, stop_words=None)
+    }).run(query="identifier:%s" % itemid)
+
+    
 if __name__ == "__main__":
-    # Test code
-    pipeline('terms', rows=1)
-
-
+    test_sequencer()

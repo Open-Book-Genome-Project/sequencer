@@ -40,13 +40,11 @@ pip install -e .  # install the library (and re-run in project root as you make 
 ## Usage
 
 Once you've install either the production code or build your developer code, you may proceed to start python and import the `runner.pipeline` with whatever modules you'd like†, e.g.:
-```
->>> from bgp.runner import pipeline
->>> from bgp.modules import terms
->>> pipeline(terms)
-```
 
-† the pipeline is not fully running yet; the code as listed above will not fully work!
+```python
+>>> from bgp.runner import test_sequencer
+>>> s = test_sequencer('hpmor');
+>>> s.results
 
 ## Who we are
 
