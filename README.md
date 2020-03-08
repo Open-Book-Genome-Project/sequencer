@@ -39,13 +39,42 @@ pip install -e .  # install the library (and re-run in project root as you make 
 ```
 ## Usage
 
-Once you've install either the production code or build your developer code, you may proceed to start python and import the `runner.pipeline` with whatever modules you'd like†, e.g.:
+Once you've install either the production code or build your developer code, you may proceed to start python and import the `runner.pipeline` with whatever modules you'd like.
+
+Let's say you want to process the book https://archive.org/details/hpmor which has identifier `hpmor` on Archive.org. First, you would define your Sequencer as follows:
 
 ```python
->>> from bgp.runner import test_sequencer
->>> s = test_sequencer('hpmor');
->>> s.results
+>>> from bgp.runner import Sequencer, NGramProcessor, WordFreqModule, STOP_WORDS
+>>> s = Sequencer({
+...     'words': NGramProcessor(modules={
+...         'term_freq': WordFreqModule()
+...     }, n=1, stop_words=STOP_WORDS)
+... })
 ```
+
+Then, you would pass this book identifier into the Sequencer to sequence the book to get back a genome Sequence object:
+
+```python
+>>> genome = s.sequence('hpmor')
+>>> genome.results
+```
+
+If your `internetarchive` tool is configured against an account with sufficient permissions, you can then upload your genome results back to an Archive.org item (we'll arbitrarily pick the identifier `bgp`) by running:
+
+```
+>>> genome.write_results_to_item('bgp')
+```
+
+This will upload the `genome.results` as json to <book_identifier>_results.json (e.g. `hpmor_results.json`) unless otherwise specificed by overriding params.
+
+You will then be able to see your file `hpmor_results.json` within the `bgp` item's file downloads: https://archive.org/download/bgp
+
+If you want to run a default test to make sure everything works, try:
+
+```python
+>>> from bgp import test_sequence_item
+>>> genome = test_sequence_item('hpmor')
+>>> genome.results
 
 ## Who we are
 
