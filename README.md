@@ -45,6 +45,7 @@ Once you've install either the production code or build your developer code, you
 >>> from bgp.runner import test_sequencer
 >>> s = test_sequencer('hpmor');
 >>> s.results
+```
 
 ## Who we are
 
