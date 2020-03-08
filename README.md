@@ -75,6 +75,7 @@ If you want to run a default test to make sure everything works, try:
 >>> from bgp import test_sequence_item
 >>> genome = test_sequence_item('hpmor')
 >>> genome.results
+```
 
 ## Who we are
 
