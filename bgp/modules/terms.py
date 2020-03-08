@@ -1,3 +1,5 @@
+#-*- encoding: utf-8 -*-
+
 import string
 import re
 from collections import defaultdict
@@ -38,7 +40,8 @@ class NGramProcessor():
         self.stop_words = stop_words
 
     def run(self, fulltext):
-        self.terms = self.fulltext_to_ngrams(fulltext, n=self.n, stop_words=self.stop_words)
+        self.terms = self.fulltext_to_ngrams(
+            fulltext, n=self.n, stop_words=self.stop_words)
         for i, term in enumerate(self.terms):
             for m in self.modules:
                 self.modules[m].run(term, index=i)
@@ -53,14 +56,18 @@ class NGramProcessor():
         return [" ".join(ngram) for ngram in ngrams]
 
     @classmethod
-    def fulltext_to_ngrams(cls, fulltext, n=1, stop_words=None):
+    def fulltext_to_ngrams(cls, fulltext, n=1, stop_words=None,
+                           punctuation='!"#$%&\'()*+,;<=>?@[\\]^`{|}*'):
         stop_words = stop_words or {}
         def clean(fulltext):
-            return (fulltext.lower()
-                    .replace('\n-', '')
-                    .replace('\n', ' ').translate(string.punctuation)
-                    .encode('utf-8'))
-        tokens = [t.strip() for t in clean(fulltext).split(' ') if t not in stop_words]
+            return ''.join(c for c in (
+                fulltext.lower()
+                .replace('. ', ' ')
+                .replace('\n-', '')
+                .replace('\n', ' ')
+                .encode('ascii', 'ignore')
+            ) if c not in punctuation)
+        tokens = [t.strip() for t in clean(fulltext).split(' ') if t and t not in stop_words]
         return cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
 
 
@@ -74,8 +81,7 @@ class WordFreqModule:
 
     @property
     def results(self):
-        return sorted(self.freqmap, key=self.freqmap.get, reverse=True)
-
+        return sorted(self.freqmap.iteritems(), key=lambda (k, v): v, reverse=True)
 
 class ExtractorModule(object):
 
