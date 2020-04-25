@@ -9,7 +9,7 @@ from functools import partial
 import internetarchive as ia
 from bgp.config import S3_KEYS
 from bgp.modules.terms import (
-    NGramProcessor, WordFreqModule, UrlExtractorModule, IsbnExtractorModule,
+    NGramProcessor, WordFreqModule, UrlExtractorModule, IsbnExtractorModule, PageTypeProcessor, CopyrightPageDetectorModule,
     STOP_WORDS
 )
 
@@ -74,8 +74,11 @@ def test_sequence_item(itemid):
             'term_freq': WordFreqModule(),
             'isbns': IsbnExtractorModule(),
             'urls': UrlExtractorModule()
-        }, n=1, stop_words=None)
+        }, n=1, stop_words=None),
+        'pagetypes': PageTypeProcessor(modules={
+            'copyright_page': CopyrightPageDetectorModule()})
     })
+    
     return s.sequence(itemid)
 
 
