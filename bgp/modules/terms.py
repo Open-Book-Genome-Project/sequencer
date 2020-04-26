@@ -80,7 +80,7 @@ class WordFreqModule:
 
     @property
     def results(self):
-        return sorted(self.freqmap.iteritems(), key=lambda k, v: v, reverse=True)
+        return sorted(self.freqmap.items(), key=lambda k_v: k_v[0], reverse=True)
 
 class ExtractorModule(object):
 
