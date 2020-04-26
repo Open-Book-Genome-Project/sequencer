@@ -39,9 +39,9 @@ class NGramProcessor():
         self.n = n
         self.stop_words = stop_words
 
-    def run(self, fulltext):
+    def run(self, book):
         self.terms = self.fulltext_to_ngrams(
-            fulltext, n=self.n, stop_words=self.stop_words)
+            book.plaintext, n=self.n, stop_words=self.stop_words)
         for i, term in enumerate(self.terms):
             for m in self.modules:
                 self.modules[m].run(term, index=i)
@@ -65,8 +65,7 @@ class NGramProcessor():
                 .replace('. ', ' ')
                 .replace('\n-', '')
                 .replace('\n', ' ')
-                .encode('ascii', 'ignore')
-            ) if c not in punctuation)
+            ) if str(c) not in punctuation)
         tokens = [t.strip() for t in clean(fulltext).split(' ') if t and t not in stop_words]
         return cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
 
@@ -81,7 +80,7 @@ class WordFreqModule:
 
     @property
     def results(self):
-        return sorted(self.freqmap.iteritems(), key=lambda (k, v): v, reverse=True)
+        return sorted(self.freqmap.iteritems(), key=lambda k, v: v, reverse=True)
 
 class ExtractorModule(object):
 
