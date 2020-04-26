@@ -39,9 +39,9 @@ class NGramProcessor():
         self.n = n
         self.stop_words = stop_words
 
-    def run(self, fulltext):
+    def run(self, book):
         self.terms = self.fulltext_to_ngrams(
-            fulltext, n=self.n, stop_words=self.stop_words)
+            book.plaintext, n=self.n, stop_words=self.stop_words)
         for i, term in enumerate(self.terms):
             for m in self.modules:
                 self.modules[m].run(term, index=i)
