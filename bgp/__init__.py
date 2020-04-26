@@ -31,7 +31,7 @@ def _memoize_plaintext(self):
     """If converts xml to plaintext (only when needed) and memoizes result"""
     if hasattr(self, 'xml'):
         if not hasattr(self, '_plaintext'):
-            self._plaintext = BeautifulSoup(self.xml).text
+            self._plaintext = BeautifulSoup(self.xml, features="lxml").text
         return self._plaintext
 
 def upload_sequence_to_item(self, itemid, results, filename='results.json'):
