@@ -6,30 +6,16 @@ from collections import defaultdict
 from lxml import etree
 
 
-STOP_WORDS = {
-    'would', 'ourselves', 'hers', 'between',
-    'yourself', 'but', 'again', 'there', 'about', 'once',
-    'during', 'out', 'very', 'having', 'with', 'they', 'own',
-    'an', 'be', 'some', 'for', 'do', 'its', 'yours', 'such',
-    'into', 'of', 'most', 'itself', 'other', 'off', 'is', 's',
-    'am', 'or', 'who', 'as', 'from', 'him', 'each', 'the',
-    'themselves', 'until', 'below', 'are', 'we', 'these', 'your',
-    'through', 'don', 'nor', 'me', 'were', 'her', 'more',
-    'himself', 'this', 'down', 'should', 'our', 'their', 'while',
-    'above', 'both', 'up', 'to', 'ours', 'had', 'she', 'all',
-    'no', 'when', 'at', 'any', 'before', 'them', 'same', 'and',
-    'been', 'have', 'in', 'will', 'on', 'does', 'yourselves',
-    'then', 'that', 'because', 'what', 'over', 'why', 'so', 'can',
-    'did', 'not', 'now', 'under', 'he', 'you', 'herself', 'has',
-    'just', 'where', 'too', 'only', 'myself', 'which', 'those',
-    'i', 'after', 'few', 'whom', 't', 'being', 'if', 'theirs',
-    'my', 'against', 'a', 'by', 'doing', 'it', 'how', 'further',
-    'was', 'here', 'than', 'new', 'his', 'her', 'one', 'two',
-    'three', 'also', 'like', 'could', 'many', 'see', 'may',
-    'ever', 'became', 'because', 'far', 'well', 'among', 'things',
-    'seems', 'much', 'almost', 'around', 'often'
-}
-
+STOP_WORDS = set("""a about above after again against all almost also am among an and
+    any are around as at be became because been before being below between both but by
+    can could did do does doing don down during each ever far few for from further had
+    has have having he her here hers herself him himself his how i if in into is it its
+    itself just like many may me more most much my myself new no nor not now of off
+    often on once one only or other our ours ourselves out over own s same see seems
+    she should so some such t than that the their theirs them themselves then there
+    these they things this those three through to too two under until up very was we
+    well were what when where which while who whom why will with would you your yours
+    yourself yourselves""".split())
 
 class NGramProcessor():
 
@@ -41,9 +27,9 @@ class NGramProcessor():
         self.n = n
         self.stop_words = stop_words
 
-    def run(self, fulltext):
+    def run(self, book):
         self.terms = self.fulltext_to_ngrams(
-            fulltext, n=self.n, stop_words=self.stop_words)
+            book.plaintext, n=self.n, stop_words=self.stop_words)
         for i, term in enumerate(self.terms):
             for m in self.modules:
                 self.modules[m].run(term, index=i)
@@ -67,8 +53,7 @@ class NGramProcessor():
                 .replace('. ', ' ')
                 .replace('\n-', '')
                 .replace('\n', ' ')
-                .encode('ascii', 'ignore')
-            ) if c not in punctuation)
+            ) if str(c) not in punctuation)
         tokens = [t.strip() for t in clean(fulltext).split(' ') if t and t not in stop_words]
         return cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
 
@@ -83,7 +68,7 @@ class WordFreqModule:
 
     @property
     def results(self):
-        return sorted(self.freqmap.iteritems(), key=lambda (k, v): v, reverse=True)
+        return sorted(self.freqmap.items(), key=lambda k_v: k_v[0], reverse=True)
 
 class ExtractorModule(object):
 

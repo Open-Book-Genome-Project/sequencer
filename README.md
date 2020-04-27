@@ -37,6 +37,14 @@ virtualenv venv && source venv/bin/activate  # setup a virtual environment
 cd sequencer  # change into project directory
 pip install -e .  # install the library (and re-run in project root as you make changes)
 ```
+
+## Technical Overview
+
+- Book Genome Project extends/overloads @jjjake's `internetarchive` tool (invisibly using bad practices) in bgp/__init__.py with functions to fetch xml / plaintext (in a smart, memoized way)
+- Programmer builds a Sequencer (which is a list) of Sequences (a Sequence essentially does 1-pass on the data). Currently, the only sequences we have are 1gram and 2gram and these could be done in a single pass.
+- Each Sequence specified a list of modules to get run as it steps
+- The result is the top-level Sequencer can print out its `.results` as a dict
+
 ## Usage
 
 Once you've install either the production code or build your developer code, you may proceed to start python and import the `runner.pipeline` with whatever modules you'd like.
