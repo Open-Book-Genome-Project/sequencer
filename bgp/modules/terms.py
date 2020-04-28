@@ -116,24 +116,24 @@ class IsbnExtractorModule(ExtractorModule):
         super(IsbnExtractorModule, self).__init__(self.validate_isbn)
 
 
-class PageTypeProcessor():
+class PageTypeProcessor(object):
 
-    def __init__(self, modules):
+    def __init__(self, modules,keyword):
         """
         :param modules: a dict of {'name': module}
         """
         self.modules = modules
-
-class CopyrightPageDetectorModule:
-    
-    def __init__(self, keyword):
         self.keyword = keyword
-        self.pageNo = pageNo
-        
     
-    def search(self, keyword):
+    def run(self, book):
+        self.pageNo = self.search(book.xml,keyword = self.keyword)
+
+    @classmethod
+    def search(cls,xmlFile,keyword = ""):
+        print("5")
         parser = etree.XMLParser(recover=True)
-        tree = etree.parse('djvu.xml',parser) # Help required: This xml file needs to be fetched through OL python library
+        root = etree.fromstring(xmlFile)
+        tree = etree.parse(root,parser) # Help required: This xml file needs to be fetched through OL python library
         for x in tree.iter('OBJECT'):
             # Iterating over each WORD tag to locate the keyword
             for i in x.iter('WORD'):
@@ -144,8 +144,22 @@ class CopyrightPageDetectorModule:
                     '''
                     param = x[0].attrib['value'].split('.')[0] 
                     pageNo = param[-4:]
-                    
+                    print("Keyword",keyword, "is found at page",pageNo)
+
 
     @property
     def results(self):
         return self.pageNo
+
+class CopyrightPageDetectorModule(PageTypeProcessor):
+    
+    def __init__(self, keyword=""):
+        self.keyword = keyword
+
+
+
+        
+    
+                    
+
+
