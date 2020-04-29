@@ -9,7 +9,7 @@ import tempfile
 from bgp import ia
 from bgp.config import S3_KEYS
 from bgp.modules.terms import (
-    NGramProcessor, WordFreqModule, UrlExtractorModule, IsbnExtractorModule, PageTypeProcessor, CopyrightPageDetectorModule,
+    NGramProcessor, WordFreqModule, UrlExtractorModule, IsbnExtractorModule, PageTypeProcessor, KeywordPageDetectorModule,
     STOP_WORDS
 )
    
@@ -51,7 +51,7 @@ DEFAULT_SEQUENCER = Sequencer({
         'urls': UrlExtractorModule()
     }, n=1, stop_words=None),
     'pagetypes': PageTypeProcessor(modules={
-        'copyright_page': CopyrightPageDetectorModule()
+        'keyword_page': KeywordPageDetectorModule()
   }, keyword = "DESCARTES")
  })
 

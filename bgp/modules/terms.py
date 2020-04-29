@@ -146,15 +146,14 @@ class PageTypeProcessor(object):
                     '''
                     param = x[0].attrib['value'].split('.')[0] 
                     pageNo = param[-4:]
-                    print("Keyword",keyword, "is found at page",pageNo)
+                    print("Keyword",keyword, "is found at page",pageNo) # For debugging purpose
 
 
     @property
     def results(self):
         return self.pageNo
 
-class CopyrightPageDetectorModule(PageTypeProcessor):
+class KeywordPageDetectorModule(PageTypeProcessor):
     
     def __init__(self, keyword=""):
         self.keyword = keyword
-        
