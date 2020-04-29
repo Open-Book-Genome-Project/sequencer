@@ -50,7 +50,7 @@ DEFAULT_SEQUENCER = Sequencer({
         'isbns': IsbnExtractorModule(),
         'urls': UrlExtractorModule()
     }, n=1, stop_words=None),
-  'pagetypes': PageTypeProcessor(modules={
+    'pagetypes': PageTypeProcessor(modules={
         'copyright_page': CopyrightPageDetectorModule()
   }, keyword = "DESCARTES")
  })

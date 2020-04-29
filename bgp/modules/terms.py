@@ -130,13 +130,15 @@ class PageTypeProcessor(object):
 
     @classmethod
     def search(cls,xmlFile,keyword = ""):
-        print("5")
-        parser = etree.XMLParser(recover=True)
-        root = etree.fromstring(xmlFile)
-        tree = etree.parse(root,parser) # Help required: This xml file needs to be fetched through OL python library
-        for x in tree.iter('OBJECT'):
+        utf8_parser = etree.XMLParser(encoding='utf-8')
+        node = etree.fromstring(xmlFile.encode('utf-8'), parser=utf8_parser)
+        for x in node.iter('OBJECT'):
             # Iterating over each WORD tag to locate the keyword
             for i in x.iter('WORD'):
+                '''
+                Uncomment the below line to see all the keywords present in DJVU file
+                '''
+                #print(i.text)
                 if(i.text == keyword):
                     '''
                         x[0].attrib['value'] is Descartes-TheGeometry_0273.djvu 
@@ -155,11 +157,4 @@ class CopyrightPageDetectorModule(PageTypeProcessor):
     
     def __init__(self, keyword=""):
         self.keyword = keyword
-
-
-
         
-    
-                    
-
-
