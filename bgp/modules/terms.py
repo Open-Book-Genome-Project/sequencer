@@ -116,44 +116,49 @@ class IsbnExtractorModule(ExtractorModule):
         super(IsbnExtractorModule, self).__init__(self.validate_isbn)
 
 
-class PageTypeProcessor(object):
+class PageTypeProcessor:
 
-    def __init__(self, modules,keyword):
-        """
-        :param modules: a dict of {'name': module}
-        """
+    def __init__(self, modules):
         self.modules = modules
-        self.keyword = keyword
     
     def run(self, book):
-        self.pageNo = self.search(book.xml,keyword = self.keyword)
+        self.pageNo = self.pageProcessor(book.xml)
 
-    @classmethod
-    def search(cls,xmlFile,keyword = ""):
+    @staticmethod
+    def pageProcessor(xmlFile):
         utf8_parser = etree.XMLParser(encoding='utf-8')
         node = etree.fromstring(xmlFile.encode('utf-8'), parser=utf8_parser)
         for x in node.iter('OBJECT'):
-            # Iterating over each WORD tag to locate the keyword
-            for i in x.iter('WORD'):
-                '''
-                Uncomment the below line to see all the keywords present in DJVU file
-                '''
-                #print(i.text)
-                if(i.text == keyword):
-                    '''
-                        x[0].attrib['value'] is Descartes-TheGeometry_0273.djvu 
-                        splitting at '.' and finding the last 4 lettes of the book name in this case it is 0273
-                    '''
-                    param = x[0].attrib['value'].split('.')[0] 
-                    pageNo = param[-4:]
-                    print("Keyword",keyword, "is found at page",pageNo) # For debugging purpose
-
-
+            param = x[0].attrib['value'].split('.')[0] 
+            pageNo = param[-4:]
+            # I am a page processor now I will send each page to the respective modules
+            #print('Processing pageno', pageNo)
+            # To-Do
+    
     @property
     def results(self):
         return self.pageNo
 
-class KeywordPageDetectorModule(PageTypeProcessor):
+class KeywordPageDetectorModule:
     
-    def __init__(self, keyword=""):
+    def __init__(self,keyword):
         self.keyword = keyword
+        
+    def run(self, book):
+        self.keywordPageNo = self.keywordDetector(book.xml)
+
+    @staticmethod  
+    def keywordDetector(cls,xmlFile):
+        utf8_parser = etree.XMLParser(encoding='utf-8')
+        node = etree.fromstring(xmlFile.encode('utf-8'), parser=utf8_parser)
+        for x in node.iter('OBJECT'):
+            for i in x.iter('WORD'):
+                if(i.text == keyword.lower()):
+                    param = x[0].attrib['value'].split('.')[0] 
+                    keywordPage = param[-4:]
+                    print("Keyword",keyword, "is found at page",keywordPage) # For debugging purpose
+    
+    @property
+    def results(self):
+        return self.keywordPage
+

@@ -51,8 +51,8 @@ DEFAULT_SEQUENCER = Sequencer({
         'urls': UrlExtractorModule()
     }, n=1, stop_words=None),
     'pagetypes': PageTypeProcessor(modules={
-        'keyword_page': KeywordPageDetectorModule()
-  }, keyword = "DESCARTES")
+        'keyword_page': KeywordPageDetectorModule(keyword='descartes')
+  })
  })
 
 
