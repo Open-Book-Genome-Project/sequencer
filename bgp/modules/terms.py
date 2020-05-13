@@ -131,7 +131,7 @@ class PageTypeProcessor:
                 self.modules[m].run(x) 
     @property
     def results(self):
-        return  
+        return {m: self.modules[m].results for m in self.modules}
 
 class KeywordPageDetectorModule:
     
