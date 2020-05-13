@@ -123,10 +123,11 @@ class PageTypeProcessor:
 
     '''
     1 --> run() method sends the book(djvu.xml) file to pageProcessor.
-    2 --> pageProcessor processes the xml file and parses the pages
-    3 --> Each page is then parsed and passed into KeywordPageDetectorModule for further operations
-    4 --> KeywordPageDetectorModule looks for the keywords and returns the pages in a list called detectedPages
-          back to pageProcessor and stores them in a list called detectedPage
+    2 --> pageProcessor processes the xml file and parses each of the pages
+    3 --> Each page is then sent into KeywordPageDetectorModule
+    4 --> KeywordPageDetectorModule looks for the keywords on each of the page
+          and returns the pages in a list called detectedPages back to pageProcessor
+          and stores them in a list called detectedPages
     '''
     
     def run(self, book):
@@ -137,11 +138,11 @@ class PageTypeProcessor:
         utf8_parser = etree.XMLParser(encoding='utf-8')
         node = etree.fromstring(xmlFile.encode('utf-8'), parser=utf8_parser)
         for x in node.iter('OBJECT'):
-            param = x[0].attrib['value'].split('.')[0] 
-            pageNo = param[-4:]
+            # Passing each page to keywordPageFinder Module
             detectedPages = KeywordPageDetectorModule.keywordPageFinder(x)
-            print("\n***** Page Processor Results *****\nDetected pages for given keyword are ",detectedPages)
-            return detectedPages
+            if(len(detectedPages) != 0):
+                print("\n***** Page Wise Results *****\nKeyword detected on page ",detectedPages)
+        return detectedPages
     
     @property
     def results(self):
@@ -151,19 +152,20 @@ class KeywordPageDetectorModule:
     
     def __init__(self,keyword):
         self.keyword = keyword
-    
+
     @staticmethod  
     def keywordPageFinder(x):
         keyword = 'descartes' # keyword was not getting detected so given manually (Needs to be fixed)
-        detectedPages = []
+        detectedPages = set() # to avoid duplicate page numbers 
         
         for i in x.iter('WORD'):
             if(i.text.lower() == keyword):
-                print(i.text)
                 param = x[0].attrib['value'].split('.')[0] 
                 keywordPage = param[-4:]
-                print("Keyword",keyword, "is found at page",keywordPage) # For debugging purpose
-                detectedPages.append(keywordPage)
+                detectedPages.add(keywordPage)
         return detectedPages
 
+    @property
+    def results(self):
+        return self.detectedPages
 
