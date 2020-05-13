@@ -125,8 +125,6 @@ class PageTypeProcessor:
         utf8_parser = etree.XMLParser(encoding='utf-8')
         node = etree.fromstring(book.xml.encode('utf-8'), parser=utf8_parser)
         for x in node.iter('OBJECT'):
-            param = x[0].attrib['value'].split('.')[0] 
-            pageNo = param[-4:]
             for m in self.modules:
                 self.modules[m].run(x) 
     @property
