@@ -135,7 +135,7 @@ class PageTypeProcessor:
 
 class KeywordPageDetectorModule:
     
-    def __init__(self,keyword):
+    def __init__(self, keyword):
         self.keyword = keyword.lower()
         self.matched_pages = []
 
