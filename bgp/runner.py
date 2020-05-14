@@ -9,10 +9,10 @@ import tempfile
 from bgp import ia
 from bgp.config import S3_KEYS
 from bgp.modules.terms import (
-    NGramProcessor, WordFreqModule, UrlExtractorModule, IsbnExtractorModule,
+    NGramProcessor, WordFreqModule, UrlExtractorModule, IsbnExtractorModule, PageTypeProcessor, KeywordPageDetectorModule,
     STOP_WORDS
 )
-   
+
 
 class Sequencer:
 
@@ -26,7 +26,7 @@ class Sequencer:
 
     def __init__(self, pipeline):
         self.pipeline = pipeline
-        
+
     def sequence(self, book):
         """
         :param [NGramProcessor] pipeline: a list of NGramProcessors that run modules
@@ -49,7 +49,10 @@ DEFAULT_SEQUENCER = Sequencer({
         'term_freq': WordFreqModule(),
         'isbns': IsbnExtractorModule(),
         'urls': UrlExtractorModule()
-    }, n=1, stop_words=None)
+    }, n=1, stop_words=None),
+    'pagetypes': PageTypeProcessor(modules={
+        'copyright_page': KeywordPageDetectorModule(keyword='copyright')
+    })
 })
 
 

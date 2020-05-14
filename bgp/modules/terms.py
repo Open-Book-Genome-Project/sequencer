@@ -3,6 +3,8 @@
 import string
 import re
 from collections import defaultdict
+from lxml import etree
+
 
 STOP_WORDS = set("""a about above after again against all almost also am among an and
     any are around as at be became because been before being below between both but by
@@ -66,7 +68,8 @@ class WordFreqModule:
 
     @property
     def results(self):
-        return sorted(self.freqmap.items(), key=lambda k_v: k_v[0], reverse=True)
+        return sorted(
+            self.freqmap.items(), key=lambda k_v: k_v[0], reverse=True)
 
 class ExtractorModule(object):
 
@@ -113,3 +116,34 @@ class IsbnExtractorModule(ExtractorModule):
     def __init__(self):
         super(IsbnExtractorModule, self).__init__(self.validate_isbn)
 
+
+class PageTypeProcessor:
+
+    def __init__(self, modules):
+        self.modules = modules
+
+    def run(self, book):
+        utf8_parser = etree.XMLParser(encoding='utf-8')
+        node = etree.fromstring(book.xml.encode('utf-8'), parser=utf8_parser)
+        for x in node.iter('OBJECT'):
+            for m in self.modules:
+                self.modules[m].run(x)
+    @property
+    def results(self):
+        return {m: self.modules[m].results for m in self.modules}
+
+class KeywordPageDetectorModule:
+
+    def __init__(self, keyword):
+        self.keyword = keyword.lower()
+        self.matched_pages = []
+
+    def run(self,x):
+        for word in x.iter('WORD'):
+            if(word.text.lower() == self.keyword):
+                param = x[0].attrib['value'].split('.')[0]
+                current_page = param[-4:]
+                self.matched_pages.append(current_page)
+    @property
+    def results(self):
+        return self.matched_pages
