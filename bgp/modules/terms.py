@@ -68,7 +68,8 @@ class WordFreqModule:
 
     @property
     def results(self):
-        return sorted(self.freqmap.items(), key=lambda k_v: k_v[0], reverse=True)
+        return sorted(
+            self.freqmap.items(), key=lambda k_v: k_v[0], reverse=True)
 
 class ExtractorModule(object):
 
@@ -126,13 +127,13 @@ class PageTypeProcessor:
         node = etree.fromstring(book.xml.encode('utf-8'), parser=utf8_parser)
         for x in node.iter('OBJECT'):
             for m in self.modules:
-                self.modules[m].run(x) 
+                self.modules[m].run(x)
     @property
     def results(self):
         return {m: self.modules[m].results for m in self.modules}
 
 class KeywordPageDetectorModule:
-    
+
     def __init__(self, keyword):
         self.keyword = keyword.lower()
         self.matched_pages = []
@@ -140,9 +141,9 @@ class KeywordPageDetectorModule:
     def run(self,x):
         for word in x.iter('WORD'):
             if(word.text.lower() == self.keyword):
-                param = x[0].attrib['value'].split('.')[0] 
+                param = x[0].attrib['value'].split('.')[0]
                 current_page = param[-4:]
                 self.matched_pages.append(current_page)
-    @property    
+    @property
     def results(self):
         return self.matched_pages

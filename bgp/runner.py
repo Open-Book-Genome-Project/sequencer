@@ -12,7 +12,7 @@ from bgp.modules.terms import (
     NGramProcessor, WordFreqModule, UrlExtractorModule, IsbnExtractorModule, PageTypeProcessor, KeywordPageDetectorModule,
     STOP_WORDS
 )
-   
+
 
 class Sequencer:
 
@@ -26,7 +26,7 @@ class Sequencer:
 
     def __init__(self, pipeline):
         self.pipeline = pipeline
-        
+
     def sequence(self, book):
         """
         :param [NGramProcessor] pipeline: a list of NGramProcessors that run modules
@@ -51,9 +51,9 @@ DEFAULT_SEQUENCER = Sequencer({
         'urls': UrlExtractorModule()
     }, n=1, stop_words=None),
     'pagetypes': PageTypeProcessor(modules={
-        'keyword_page': KeywordPageDetectorModule(keyword='descartes')
-  })
- })
+        'copyright_page': KeywordPageDetectorModule(keyword='copyright')
+    })
+})
 
 
 def test_sequence_item(itemid):
