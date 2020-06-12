@@ -19,6 +19,27 @@ import internetarchive as ia
 from bs4 import BeautifulSoup
 from bgp.config import S3_KEYS
 from bgp.runner import Sequencer
+from bgp.utils import STOP_WORDS
+from bgp.modules.terms import NGramProcessor
+from bgp.modules.terms import (
+    WordFreqModule, UrlExtractorModule, IsbnExtractorModule
+)
+from bgp.modules.pagetypes import PageTypeProcessor
+from bgp.modules.pagetypes import KeywordPageDetectorModule
+
+DEFAULT_SEQUENCER = Sequencer({
+    '2grams': NGramProcessor(modules={
+        'term_freq': WordFreqModule()
+    }, n=2, stop_words=STOP_WORDS),
+    '1grams': NGramProcessor(modules={
+        'term_freq': WordFreqModule(),
+        'isbns': IsbnExtractorModule(),
+        'urls': UrlExtractorModule()
+    }, n=1, stop_words=None),
+    'pagetypes': PageTypeProcessor(modules={
+        'copyright_page': KeywordPageDetectorModule(keyword='copyright')
+    })
+})
 
 IA = ia.get_session({'s3': S3_KEYS})
 ia.get_item = IA.get_item
