@@ -6,16 +6,32 @@ from collections import defaultdict
 from lxml import etree
 
 
-STOP_WORDS = set("""a about above after again against all almost also am among an and
-    any are around as at be became because been before being below between both but by
-    can could did do does doing don down during each ever far few for from further had
-    has have having he her here hers herself him himself his how i if in into is it its
-    itself just like many may me more most much my myself new no nor not now of off
-    often on once one only or other our ours ourselves out over own s same see seems
-    she should so some such t than that the their theirs them themselves then there
-    these they things this those three through to too two under until up very was we
-    well were what when where which while who whom why will with would you your yours
-    yourself yourselves""".split())
+STOP_WORDS = {'elsewhere', 'bottom', 'n’t', 're', 'herself', 'see', 'which', 'yourself', 'top', 'somehow', 'nothing', 'move',
+              'since', 'former', 'this', 'doing', 'too', 'who', 'again', 'below', 'we', 'either', 'he', 'so', 'none', 'indeed',
+              'still', 'thereafter', 'also', 'empty', 'please', '‘ve', 'name', 'here', 'quite', 'no', 'afterwards', 'then',
+              "'s", 'down', 'its', 'full', 'nowhere', 'off', 'own', 'first', 'regarding', 'twelve', 'by', 'her', 'where', 'within',
+              'a', 'others', 'another', 'but', 'really', 'during', 'itself', 'seem', 'each', 'neither', 'three', '‘ll', 'somewhere',
+              '‘re', 'other', 'n‘t', 'rather', '’s', 'how', 'be', 'under', 'at', 'much', 'whenever', 'of', 'wherein', 'hence',
+              'are', 'my', 'everywhere', 'am', 'something', '’ll', 'twenty', 'because', 'few', 'seems', '‘d', 'through', 'your',
+              'four', 'thereby', 'into', 'has', 'could', 'our', 'out', 'if', 'already', 'namely', 'such', 'hereupon', 'therefore',
+              'why', 'back', 'some', 'whereafter', 'for', 'never', 'whom', 'two', 'there', 'me', 'however', 'anyone', 'yourselves',
+              'whereupon', 'whole', 'enough', 'on', 'unless', 'same', 'behind', 'becoming', 'than', 'sometimes', 'upon', 'often',
+              'else', 'along', 'part', 'as', 'was', 'ours', 'further', 'onto', 'until', 'amount', "'ve", 'due', 'anything', 'becomes',
+              'seeming', 'is', 'forty', 'sometime', 'around', 'once', 'beyond', 'even', 'have', 'used', 'several', '‘m', 'without',
+              'everyone', 'therein', 'whatever', 'formerly', '‘s', 'less', 'mine', 'fifteen', 'it', '’m', 'beforehand', 'from',
+              'almost', 'most', 'latterly', 'now', 'not', 'these', 'whose', 'nevertheless', 'per', 'after', 'themselves', 'via',
+              'everything', 'what', 'herein', 'show', 'whereby', 'anyhow', 'will', 'become', "'ll", 'various', 'latter', 'were',
+              'throughout', 'his', 'always', 'serious', 'must', "'d", 'in', 'meanwhile', 'before', 'keep', 'yet', 'though', 'get',
+              'hereafter', 'hereby', 'ten', 'had', 'thereupon', 'alone', 'whoever', 'one', 'across', 'side', 'over', 'or', 'besides',
+              'using', 'otherwise', 'whence', 'take', 'those', 'ever', 'eight', 'they', 'anyway', 'noone', 'an', 'many', 'moreover',
+              'third', 'himself', 'their', 'cannot', 'myself', 'i', 'call', 'been', 'hundred', 'thence', '’re', 'do', 'give', 'did',
+              'him', 'made', 'can', 'nine', 'very', 'go', 'perhaps', 'thru', 'wherever', 'although', "'m", 'became', 'above', 'hers',
+              'except', 'while', 'more', 'would', 'well', 'toward', 'might', 'only', 'to', 'the', 'you', 'say', 'about', 'yours',
+              'whether', "n't", 'among', 'least', 'nor', 'next', 'amongst', 'whither', 'ourselves', 'beside', 'them', 'whereas',
+              'put', 'and', 'towards', 'make', 'last', 'eleven', 'between', 'thus', '’ve', 'does', 'five', 'together', 'done',
+              'being', 'us', 'both', 'should', 'every', "'re", 'against', 'any', 'may', 'seemed', 'fifty', 'when', 'just', 'front',
+              '’d', 'anywhere', 'all', 'that', 'six', 'nobody', 'ca', 'with', 'sixty', 'someone', 'she', 'up', 'mostly'
+             }
 
 class NGramProcessor():
 
