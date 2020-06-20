@@ -13,7 +13,8 @@ __title__ = 'bgp'
 __version__ = '0.0.34'
 __author__ = 'OBGP'
 
-
+import json
+import tempfile
 import internetarchive as ia
 from bs4 import BeautifulSoup
 from bgp.config import S3_KEYS
