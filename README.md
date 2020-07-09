@@ -2,6 +2,11 @@
 
 Welcome to the Open Book Genome Project (OBGP) Sequencer™, an open-source Book Processing Pipeline of responsibly vetted community "[modules](https://github.com/Open-Book-Genome-Project/sequencer/tree/master/bgp/modules)" which classify, sequence, and fingerprint book fulltext to reveal public insights.
 
+## Quickstart
+
+Want to get started immediately? Try the google colab file for BGP:
+https://colab.research.google.com/drive/1o_AEcfFt4-SrC6Xv72lx1ybkjHxhA4kp
+
 ## How it Works
 
 Each month, the OBGP Sequencer™ gets run against the fulltext of more than 1M books, generating valuable public insights for book lovers and researchers around the globe. OBGP Sequencer™ consists of carefully vetted community-contributed [modules](https://github.com/Open-Book-Genome-Project/sequencer/tree/master/bgp/modules) which aim to responsibly [help increase the discoverability and usefulness of books](https://docs.google.com/document/d/1eybbw_qZ3EE9CJg868BhPuq5z_36Wq2G0Ki3Lkde9v8/edit?ts=5e5edcd1#heading=h.dj2jqsxuy8my), e.g.:
