@@ -30,7 +30,7 @@ class Sequencer:
         :param int rows: limit how many results returned
         :param int page: starting page to offset search results
         """
-        book = book if type(book) is ia.Item else IA.get_item(book)
+        book = book if type(book) is ia.Item else ia.get_item(book)
         sq = self.Sequence(copy.deepcopy(self.pipeline))
         for p in sq.pipeline:
             sq.pipeline[p].run(book)
