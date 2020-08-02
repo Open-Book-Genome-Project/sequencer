@@ -57,7 +57,8 @@ Once you've install either the production code or build your developer code, you
 Let's say you want to process the book https://archive.org/details/hpmor which has identifier `hpmor` on Archive.org. First, you would define your Sequencer as follows:
 
 ```python
->>> from bgp.runner import Sequencer, NGramProcessor, WordFreqModule, STOP_WORDS
+>>> from bgp import Sequencer, STOP_WORDS
+>>> from bgp.modules.terms import NGramProcessor, WordFreqModule
 >>> s = Sequencer({
 ...     'words': NGramProcessor(modules={
 ...         'term_freq': WordFreqModule()
@@ -85,8 +86,8 @@ You will then be able to see your file `hpmor_results.json` within the `bgp` ite
 If you want to run a default test to make sure everything works, try:
 
 ```python
->>> from bgp import test_sequence_item
->>> genome = test_sequence_item('hpmor')
+>>> from bgp import DEFAULT_SEQUENCER
+>>> genome = DEFAULT_SEQUENCER.sequence('9780262517638OpenAccess')
 >>> genome.results
 ```
 
