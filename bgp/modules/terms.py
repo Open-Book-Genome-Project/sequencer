@@ -34,14 +34,44 @@ with within without would yet you your yours yourself yourselves ‘d ‘ll ‘m
 ‘s ‘ve ’d ’ll ’m ’re ’s ’ve""".split())
 
 
+class FulltextProcessor():
+
+    def __init__(self, modules):
+        self.modules = modules
+
+    def run(self, book):
+        for m in self.modules:
+            self.modules[m].run(book.plaintext)
+
+    @property
+    def results(self):
+        return {m: self.modules[m].results for m in self.modules}
+
+
+class ReadingLevelModule:
+
+    def __init__(self):
+        self.flesch_kincaid_grade= None
+
+    def run(self, doc, **kwargs):
+        import textstat
+        self.flesch_kincaid_grade = textstat.flesch_kincaid_grade(doc)    
+
+    @property
+    def results(self):
+        return self.flesch_kincaid_grade
+    
 class NGramProcessor():
 
-    def __init__(self, modules, n=1, stop_words=None):
+    def __init__(self, modules, n=1, threshold=None, stop_words=None):
         """
-        :param modules: a dict of {'name': module}
+        :param lambda modules: a dict of {'name': module}
+        :param int n: n-gram sequence length
+        :param int threshold: min occurences threshold
         """
         self.modules = modules
         self.n = n
+        self.threshold = threshold
         self.stop_words = stop_words
 
     def run(self, book):
@@ -49,7 +79,7 @@ class NGramProcessor():
             book.plaintext, n=self.n, stop_words=self.stop_words)
         for i, term in enumerate(self.terms):
             for m in self.modules:
-                self.modules[m].run(term, index=i)
+                self.modules[m].run(term, threshold=self.threshold, index=i)
 
     @property
     def results(self):
@@ -62,7 +92,7 @@ class NGramProcessor():
 
     @classmethod
     def fulltext_to_ngrams(cls, fulltext, n=1, stop_words=None,
-                           punctuation='!"#$%&\'()*+,;<=>?@[\\]^`{|}*'):
+                           punctuation='!"#$%&\'()*+,.-;<=>?@[\\]^`{|}*'):
         stop_words = stop_words or {}
         def clean(fulltext):
             return ''.join(c.encode("ascii", "ignore") for c in (
@@ -80,13 +110,16 @@ class WordFreqModule:
     def __init__(self):
         self.freqmap = defaultdict(int)
 
-    def run(self, word, **kwargs):
+    def run(self, word, threshold=None, **kwargs):
+        self.threshold = threshold
         self.freqmap[word] += 1
 
     @property
     def results(self):
         return sorted(
-            self.freqmap.items(), key=lambda k_v: k_v[0], reverse=True)
+            [items for items in self.freqmap.items()
+             if not self.threshold or items[1] > self.threshold],
+            key=lambda k_v: k_v[0], reverse=True)
 
 class ExtractorModule(object):
 
