@@ -18,7 +18,7 @@ Each month, the OBGP Sequencer™ gets run against the fulltext of more than 1M 
 
 1. Please [read the whitepaper](https://docs.google.com/document/d/1eybbw_qZ3EE9CJg868BhPuq5z_36Wq2G0Ki3Lkde9v8/edit?ts=5e5edcd1#) and look through our community list of [proposed or requested modules](https://docs.google.com/document/d/1eybbw_qZ3EE9CJg868BhPuq5z_36Wq2G0Ki3Lkde9v8/edit?ts=5e5edcd1#heading=h.dj2jqsxuy8my)
 2. [Propose a "module"](https://github.com/Open-Book-Genome-Project/sequencer/issues/new) by creating a github issue
-3. Get the code: Fork this git repository and clone it to your workspace. Ceate a new branch for your module (named after its corresponding github issue number and title: e.g. `git checkout -b 12/module/find-isbns`). Install
+3. Get the code: Fork this git repository and clone it to your workspace. Create a new branch for your module (named after its corresponding github issue number and title: e.g. `git checkout -b 12/module/find-isbns`). Install
 4. [Create a new module](https://github.com/Open-Book-Genome-Project/sequencer/new/master) to the `modules/` directory
 5. Test your module locally using [Internet Archive's unrestricted collection of ~800k books](https://docs.google.com/document/d/10cNGGYrDFu0BJg-pUYYzKpjB1TWkqKspTZl2YG-yLJ4/edit?fbclid=IwAR3fx-LPu7D4zU1FbcehX2bIY1fNU_nvbqOiy5QpS0yGv_ILhVr73WHD-BI#heading=h.36kkw3g3gzos)
 5. [open a Pull Request](https://github.com/Open-Book-Genome-Project/sequencer/compare) so your contribution may be reviewed.
@@ -79,7 +79,7 @@ If your `internetarchive` tool is configured against an account with sufficient 
 >>> genome.write_results_to_item('bgp')
 ```
 
-This will upload the `genome.results` as json to <book_identifier>_results.json (e.g. `hpmor_results.json`) unless otherwise specificed by overriding params.
+This will upload the `genome.results` as json to <book_identifier>_results.json (e.g. `hpmor_results.json`) unless otherwise specified by overriding params.
 
 You will then be able to see your file `hpmor_results.json` within the `bgp` item's file downloads: https://archive.org/download/bgp
 
