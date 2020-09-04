@@ -67,7 +67,7 @@ class NGramProcessor():
         """
         :param lambda modules: a dict of {'name': module}
         :param int n: n-gram sequence length
-        :param int threshold: min occurences threshold
+        :param int threshold: min occurrences threshold
         """
         self.modules = modules
         self.n = n
