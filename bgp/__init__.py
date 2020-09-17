@@ -10,7 +10,7 @@
 """
 
 __title__ = 'bgp'
-__version__ = '0.0.34'
+__version__ = '0.0.36'
 __author__ = 'OBGP'
 
 import copy
@@ -18,7 +18,6 @@ import json
 import tempfile
 import internetarchive as ia
 from bs4 import BeautifulSoup
-from bgp.config import S3_KEYS
 from bgp.utils import STOP_WORDS
 from bgp.modules.terms import NGramProcessor, FulltextProcessor
 from bgp.modules.terms import (
@@ -28,7 +27,11 @@ from bgp.modules.terms import (
 from bgp.modules.pagetypes import PageTypeProcessor
 from bgp.modules.pagetypes import KeywordPageDetectorModule
 
-IA = ia.get_session({'s3': S3_KEYS})
+from internetarchive.config import get_config
+
+s3_keys = get_config().get('s3')
+
+IA = ia.get_session(s3_keys)
 ia.get_item = IA.get_item
 
 def _memoize_xml(self):
@@ -42,16 +45,8 @@ def _memoize_plaintext(self):
         if not hasattr(self, '_plaintext'):
             self._plaintext = BeautifulSoup(self.xml, features="lxml").text
         return self._plaintext
-
-def upload_sequence_to_item(self, itemid, results, filename='results.json'):
-    with tempfile.NamedTemporaryFile() as tmp:
-        json.dump(results, tmp)
-        self.upload(
-            itemid, {'%s_%s' % (self.book.identifier, filename): tmp},
-            access_key=S3_KEYS.get('access'),
-            secret_key=S3_KEYS.get('secret'))
     
-def get_book_items(self, query, rows=100, page=1):
+def get_book_items(query, rows=100, page=1):
     """
     :param str query: an search query for selecting/faceting books
     :param int rows: limit how many results returned
@@ -60,13 +55,14 @@ def get_book_items(self, query, rows=100, page=1):
     :rtype: `internetarchive` Item
     """
     params = {'page': page, 'rows': rows, 'scope': 'all'}
-    return ia.s.search_items(query, params=params).iter_as_items()
+    # this may need to get run as a session (priv'd access)
+    return ia.search_items(query, params=params).iter_as_items()
 
 
+ia.get_book_items = get_book_items
 ia.Item.xml = property(_memoize_xml)
 ia.Item.plaintext = property(_memoize_plaintext)
-ia.Item.get_book_items = get_book_items
-ia.Item.upload_sequence_to_item = upload_sequence_to_item
+
 
 class Sequencer:
 
@@ -74,9 +70,21 @@ class Sequencer:
         def __init__(self, pipeline):
             self.pipeline = pipeline
 
+        def upload(self, itemid=None):
+            if getattr(self, 'book'):
+                itemid = itemid or self.book.identifier
+                with tempfile.NamedTemporaryFile() as tmp:
+                    json.dump(self.results, tmp)
+                    tmp.flush()
+                    ia.upload(itemid, {'%s_genome.json' % (itemid): tmp},
+                              access_key=s3_keys['access'],
+                              secret_key=s3_keys['secret'])
+
         @property
         def results(self):
-            return {p: self.pipeline[p].results for p in self.pipeline}
+            data = {p: self.pipeline[p].results for p in self.pipeline}
+            data['version'] = __version__
+            return data
 
     def __init__(self, pipeline):
         self.pipeline = pipeline
