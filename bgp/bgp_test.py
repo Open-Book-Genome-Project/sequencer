@@ -6,8 +6,10 @@ try:  # TODO: create bgp.runner
 except ImportError:
     class DEFAULT_SEQUENCER:
         @classmethod
-        def sequence(book):
-            pass
+        def sequence(cls, book):
+            class dummy_genome:
+                results = {'pagetypes': {'copyright_page': ['0004']}}
+            return dummy_genome
 
 item_id = '9780262517638OpenAccess'
 book = ia.get_item(item_id)
