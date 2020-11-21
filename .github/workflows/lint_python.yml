@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
-      - run: sudo apt-get install libxml2 libxslt
+      - run: sudo apt-get install libxml2 libxslt-dev
       - run: pip install black codespell flake8 isort pytest pyupgrade wheel
       - run: black --check . || true
       - run: codespell --ignore-words-list="noone" --quiet-level=2  # --skip=""
