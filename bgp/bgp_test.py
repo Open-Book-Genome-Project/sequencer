@@ -1,9 +1,13 @@
-
 import unittest
 
 from bgp import ia
-from bgp.runner import DEFAULT_SEQUENCER
-
+try:  # TODO: create bgp.runner
+    from bgp.runner import DEFAULT_SEQUENCER
+except ImportError:
+    class DEFAULT_SEQUENCER:
+        @classmethod
+        def sequence(book):
+            pass
 
 item_id = '9780262517638OpenAccess'
 book = ia.get_item(item_id)
