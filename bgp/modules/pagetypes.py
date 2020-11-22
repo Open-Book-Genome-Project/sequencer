@@ -1,9 +1,9 @@
-#-*- encoding: utf-8 -*-
-
-import string
 import re
+import string
 from collections import defaultdict
+
 from lxml import etree
+
 from bgp.utils import STOP_WORDS
 
 
@@ -61,7 +61,7 @@ class WordFreqModule:
         return sorted(
             self.freqmap.items(), key=lambda k_v: k_v[0], reverse=True)
 
-class ExtractorModule(object):
+class ExtractorModule:
 
     def __init__(self, extractor):
         self.extractor = extractor
@@ -86,7 +86,7 @@ class UrlExtractorModule(ExtractorModule):
             return s
 
     def __init__(self):
-        super(UrlExtractorModule, self).__init__(self.validate_url)
+        super().__init__(self.validate_url)
 
 
 class IsbnExtractorModule(ExtractorModule):
@@ -104,7 +104,7 @@ class IsbnExtractorModule(ExtractorModule):
             return match.group()
 
     def __init__(self):
-        super(IsbnExtractorModule, self).__init__(self.validate_isbn)
+        super().__init__(self.validate_isbn)
 
 
 class PageTypeProcessor:

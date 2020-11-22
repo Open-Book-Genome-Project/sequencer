@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 """
     __init__.py
@@ -16,18 +15,21 @@ __author__ = 'OBGP'
 import copy
 import json
 import tempfile
+
 import internetarchive as ia
 from bs4 import BeautifulSoup
-from bgp.utils import STOP_WORDS
-from bgp.modules.terms import NGramProcessor, FulltextProcessor
-from bgp.modules.terms import (
-    WordFreqModule, UrlExtractorModule, IsbnExtractorModule,
-    ReadingLevelModule
-)
-from bgp.modules.pagetypes import PageTypeProcessor
-from bgp.modules.pagetypes import KeywordPageDetectorModule
-
 from internetarchive.config import get_config
+
+from bgp.modules.pagetypes import KeywordPageDetectorModule, PageTypeProcessor
+from bgp.modules.terms import (
+    FulltextProcessor,
+    IsbnExtractorModule,
+    NGramProcessor,
+    ReadingLevelModule,
+    UrlExtractorModule,
+    WordFreqModule,
+)
+from bgp.utils import STOP_WORDS
 
 s3_keys = get_config().get('s3')
 

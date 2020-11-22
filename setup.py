@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 OBGP: Open Book Genome Project
 """
@@ -7,6 +5,7 @@ OBGP: Open Book Genome Project
 import codecs
 import os
 import re
+
 import setuptools
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -31,7 +30,7 @@ def find_version(*file_paths):
 def requirements():
     """Returns requirements.txt as a list usable by setuptools"""
     import os
-    reqtxt = os.path.join(here, u'requirements.txt')
+    reqtxt = os.path.join(here, 'requirements.txt')
     with open(reqtxt) as f:
         return f.read().split()
                             
