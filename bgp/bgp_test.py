@@ -3,7 +3,7 @@ import unittest
 from bgp import ia
 
 try:  # TODO: create bgp.runner
-    from bgp.runner import DEFAULT_SEQUENCER
+    from bgp import DEFAULT_SEQUENCER
 except ImportError:
     class DEFAULT_SEQUENCER:
         @classmethod
