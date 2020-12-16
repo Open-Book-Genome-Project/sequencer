@@ -1,6 +1,7 @@
 import unittest
 
 from bgp import ia
+
 try:  # TODO: create bgp.runner
     from bgp.runner import DEFAULT_SEQUENCER
 except ImportError:

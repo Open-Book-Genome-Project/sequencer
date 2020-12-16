@@ -1,15 +1,14 @@
-#!/usr/bin/env python
-#-*-coding: utf-8 -*-
+#!/usr/bin/env python3
 
 """
     :copyright: (c) 2020 by Open Book Genome Project
     :license: BSD, see LICENSE for more details.
 """
 
+import configparser
 import os
 import sys
 import types
-import configparser
 
 path = os.path.dirname(os.path.realpath(__file__))
 approot = os.path.abspath(os.path.join(path, os.pardir))

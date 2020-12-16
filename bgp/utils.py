@@ -1,4 +1,3 @@
-
 STOP_WORDS = set("""a about above after again against all almost also am among an and
     any are around as at be became because been before being below between both but by
     can could did do does doing don down during each ever far few for from further had
