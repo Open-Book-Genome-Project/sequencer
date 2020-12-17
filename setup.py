@@ -55,7 +55,4 @@ setuptools.setup(
     classifiers=[
         "License :: OSI Approved :: MIT License",
         ],
-    extras_require={
-        ':python_version=="2.7"': ['argparse']
-        }
 )
