@@ -93,13 +93,13 @@ class NGramProcessor():
                            punctuation='!"#$%&\'()*+,.-;<=>?@[\\]^`{|}*'):
         stop_words = stop_words or {}
         def clean(fulltext):
-            return ''.join(c.encode("ascii", "ignore") for c in (
+            return ''.join(c.encode("ascii", "ignore").decode() for c in (
                 fulltext.lower()
                 .replace('. ', ' ')
                 .replace('\n-', '')
                 .replace('\n', ' ')
             ) if c not in punctuation)
-        tokens = [t.strip() for t in clean(fulltext).split(b' ') if t and t not in stop_words]
+        tokens = [t.strip() for t in clean(fulltext).split(' ') if t and t not in stop_words]
         return cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
 
 

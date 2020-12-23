@@ -20,8 +20,7 @@ genome = DEFAULT_SEQUENCER.sequence(book)
 class TestSequencer(unittest.TestCase):
 
     def test_smoketest(self):
-        book = ia.get_item(item_id)
-        genome = DEFAULT_SEQUENCER.sequence('hpmor')
+        genome = DEFAULT_SEQUENCER.sequence('arcadeflyer_the-ninja-kids')
     
     def test_copyright_page_detection(self):
         assert genome.results['pagetypes']['copyright_page'][0] == '0004'
