@@ -46,7 +46,7 @@ def _memoize_plaintext(self):
             self._plaintext = BeautifulSoup(self.xml, features="lxml").text
         return self._plaintext
     
-def get_book_items(query, rows=100, page=1):
+def get_book_items(query, rows=100, page=1, scope_all=False):
     """
     :param str query: an search query for selecting/faceting books
     :param int rows: limit how many results returned
@@ -54,7 +54,9 @@ def get_book_items(query, rows=100, page=1):
     :return: An `internetarchive` Item
     :rtype: `internetarchive` Item
     """
-    params = {'page': page, 'rows': rows, 'scope': 'all'}
+    params = {'page': page, 'rows': rows}
+    if scope_all:
+        params['scope'] = 'all'
     # this may need to get run as a session (priv'd access)
     return ia.search_items(query, params=params).iter_as_items()
 
@@ -74,7 +76,7 @@ class Sequencer:
             if getattr(self, 'book'):
                 itemid = itemid or self.book.identifier
                 with tempfile.NamedTemporaryFile() as tmp:
-                    json.dump(self.results, tmp)
+                    tmp.write(json.dumps(self.results).encode())
                     tmp.flush()
                     ia.upload(itemid, {'%s_genome.json' % (itemid): tmp},
                               access_key=s3_keys['access'],
