@@ -13,6 +13,7 @@ __author__ = 'OBGP'
 import copy
 import json
 import tempfile
+import time
 
 import internetarchive as ia
 from bs4 import BeautifulSoup
@@ -35,15 +36,23 @@ IA = ia.get_session(s3_keys)
 ia.get_item = IA.get_item
 
 def _memoize_xml(self):
+    _memoize_xml_tic = time.perf_counter()
     if not hasattr(self, '_xml'):
         self._xml = self.download(formats=['Djvu XML'], return_responses=True)[0].text
+    _memoize_xml_toc = time.perf_counter()
+    _memoize_xml_time = round(_memoize_xml_toc - _memoize_xml_tic, 3)
+    print(f"_memoize_xml took {_memoize_xml_time} seconds to complete.")
     return self._xml
 
 def _memoize_plaintext(self):
     """If converts xml to plaintext (only when needed) and memoizes result"""
+    _memoize_plaintext_tic = time.perf_counter()
     if hasattr(self, 'xml'):
         if not hasattr(self, '_plaintext'):
             self._plaintext = BeautifulSoup(self.xml, features="lxml").text
+        _memoize_plaintext_toc = time.perf_counter()
+        _memoize_plaintext_time = round(_memoize_plaintext_toc - _memoize_plaintext_tic, 3)
+        print(f"_memoize_plaintext took {_memoize_plaintext_time} seconds to complete.")
         return self._plaintext
     
 def get_book_items(query, rows=100, page=1, scope_all=False):
@@ -98,10 +107,14 @@ class Sequencer:
         :param int rows: limit how many results returned
         :param int page: starting page to offset search results
         """
+        sequence_tic = time.perf_counter()
         sq = self.Sequence(copy.deepcopy(self.pipeline))
         sq.book = book if type(book) is ia.Item else ia.get_item(book)
         for p in sq.pipeline:
             sq.pipeline[p].run(sq.book)
+        sequence_toc = time.perf_counter()
+        sequence_time = round(sequence_toc - sequence_tic, 3)
+        print(f"sequence took {sequence_time} seconds to complete.")
         return sq
 
 DEFAULT_SEQUENCER = Sequencer({
