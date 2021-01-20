@@ -12,6 +12,7 @@ __author__ = 'OBGP'
 
 import copy
 import json
+import os
 import tempfile
 
 import internetarchive as ia
@@ -71,6 +72,14 @@ class Sequencer:
     class Sequence:
         def __init__(self, pipeline):
             self.pipeline = pipeline
+
+        def save(self, path=""):
+            # trailing slash needed for path
+            if getattr(self, 'book'):
+                if path and not os.path.exists(path):
+                    os.makedirs(path)
+                with open(f"{path}{self.book.identifier}_genome.json", "w") as txt:
+                    txt.write(json.dumps(self.results))
 
         def upload(self, itemid=None):
             if getattr(self, 'book'):
