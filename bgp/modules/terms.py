@@ -4,6 +4,8 @@ from collections import defaultdict
 
 from lxml import etree
 
+import time
+
 STOP_WORDS = set("""'d 'll 'm 're 's 've a about above across after afterwards
 again against all almost alone along already also although always am among
 amongst amount an and another any anyhow anyone anything anyway anywhere are
@@ -50,14 +52,21 @@ class ReadingLevelModule:
 
     def __init__(self):
         self.flesch_kincaid_grade= None
+        self.time = 0
 
     def run(self, doc, **kwargs):
         import textstat
-        self.flesch_kincaid_grade = textstat.flesch_kincaid_grade(doc)    
+        tic = time.perf_counter()
+        self.flesch_kincaid_grade = textstat.flesch_kincaid_grade(doc)
+        toc = time.perf_counter()
+        self.time = round(toc - tic, 3)
 
     @property
     def results(self):
-        return self.flesch_kincaid_grade
+        return {
+            "time": self.time,
+            "results": self.flesch_kincaid_grade
+        }
     
 class NGramProcessor():
 
@@ -75,9 +84,12 @@ class NGramProcessor():
     def run(self, book):
         self.terms = self.fulltext_to_ngrams(
             book.plaintext, n=self.n, stop_words=self.stop_words)
-        for i, term in enumerate(self.terms):
-            for m in self.modules:
+        for m in self.modules:
+            tic = time.perf_counter()
+            for i, term in enumerate(self.terms):
                 self.modules[m].run(term, threshold=self.threshold, index=i)
+            toc = time.perf_counter()
+            self.modules[m].time = round(toc - tic, 3)
 
     @property
     def results(self):
@@ -91,6 +103,7 @@ class NGramProcessor():
     @classmethod
     def fulltext_to_ngrams(cls, fulltext, n=1, stop_words=None,
                            punctuation='!"#$%&\'()*+,.-;<=>?@[\\]^`{|}*'):
+        fulltext_to_ngrams_tic = time.perf_counter()
         stop_words = stop_words or {}
         def clean(fulltext):
             return ''.join(c.encode("ascii", "ignore").decode() for c in (
@@ -100,6 +113,9 @@ class NGramProcessor():
                 .replace('\n', ' ')
             ) if c not in punctuation)
         tokens = [t.strip() for t in clean(fulltext).split(' ') if t and t not in stop_words]
+        fulltext_to_ngrams_toc = time.perf_counter()
+        fulltext_to_ngrams_time = round(fulltext_to_ngrams_toc - fulltext_to_ngrams_tic, 3)
+        print(f"fulltext_to_ngrams took {fulltext_to_ngrams_time} seconds to complete.")
         return cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
 
 
@@ -107,6 +123,7 @@ class WordFreqModule:
 
     def __init__(self):
         self.freqmap = defaultdict(int)
+        self.time = 0
 
     def run(self, word, threshold=None, **kwargs):
         self.threshold = threshold
@@ -114,10 +131,13 @@ class WordFreqModule:
 
     @property
     def results(self):
-        return sorted(
-            [items for items in self.freqmap.items()
-             if not self.threshold or items[1] > self.threshold],
-            key=lambda k_v: k_v[0], reverse=True)
+        return {
+            "time": self.time,
+            "results": sorted(
+                [items for items in self.freqmap.items()
+                 if not self.threshold or items[1] > self.threshold],
+                key=lambda k_v: k_v[0], reverse=True)
+        }
 
 class ExtractorModule:
 
