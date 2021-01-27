@@ -50,7 +50,7 @@ def _memoize_plaintext(self):
     _memoize_plaintext_tic = time.perf_counter()
     if hasattr(self, 'xml'):
         if not hasattr(self, '_plaintext'):
-            self._plaintext = BeautifulSoup(self.xml, features="lxml").text
+            self._plaintext = self.download(formats=['DjVuTXT'], return_responses=True)[0].text
         _memoize_plaintext_toc = time.perf_counter()
         _memoize_plaintext_time = round(_memoize_plaintext_toc - _memoize_plaintext_tic, 3)
         print(f"_memoize_plaintext took {_memoize_plaintext_time} seconds to complete.")
