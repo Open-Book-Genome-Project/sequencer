@@ -53,7 +53,6 @@ def _memoize_plaintext(self):
             self._plaintext = self.download(formats=['DjVuTXT'], return_responses=True)[0].text
         _memoize_plaintext_toc = time.perf_counter()
         _memoize_plaintext_time = round(_memoize_plaintext_toc - _memoize_plaintext_tic, 3)
-        print(f"_memoize_plaintext took {_memoize_plaintext_time} seconds to complete.")
         return self._plaintext
     
 def get_book_items(query, rows=100, page=1, scope_all=False):
@@ -81,6 +80,7 @@ class Sequencer:
     class Sequence:
         def __init__(self, pipeline):
             self.pipeline = pipeline
+            self.total_time = 0
 
         def save(self, path=""):
             # trailing slash needed for path
@@ -103,6 +103,11 @@ class Sequencer:
         @property
         def results(self):
             data = {p: self.pipeline[p].results for p in self.pipeline}
+            data['total_time'] = self.total_time
+            data['_memoize_xml'] = {
+                'time': 1,
+                'kb': 2
+            }
             data['version'] = __version__
             return data
 
@@ -122,8 +127,7 @@ class Sequencer:
         for p in sq.pipeline:
             sq.pipeline[p].run(sq.book)
         sequence_toc = time.perf_counter()
-        sequence_time = round(sequence_toc - sequence_tic, 3)
-        print(f"sequence took {sequence_time} seconds to complete.")
+        sq.total_time = round(sequence_toc - sequence_tic, 3)
         return sq
 
 DEFAULT_SEQUENCER = Sequencer({

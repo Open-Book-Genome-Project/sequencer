@@ -80,6 +80,8 @@ class NGramProcessor():
         self.n = n
         self.threshold = threshold
         self.stop_words = stop_words
+        # use token_count as word count for profiler
+        self.token_count = 0
 
     def run(self, book):
         self.terms = self.fulltext_to_ngrams(
@@ -87,6 +89,7 @@ class NGramProcessor():
         for m in self.modules:
             tic = time.perf_counter()
             for i, term in enumerate(self.terms):
+                self.token_count += 1
                 self.modules[m].run(term, threshold=self.threshold, index=i)
             toc = time.perf_counter()
             self.modules[m].time = round(toc - tic, 3)
