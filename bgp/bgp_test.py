@@ -23,4 +23,4 @@ class TestSequencer(unittest.TestCase):
         genome = DEFAULT_SEQUENCER.sequence('arcadeflyer_the-ninja-kids')
     
     def test_copyright_page_detection(self):
-        assert genome.results['pagetypes']['copyright_page'][0] == '0004'
+        assert genome.results['pagetypes']['modules']['copyright_page']['results'][0] == '0004'
