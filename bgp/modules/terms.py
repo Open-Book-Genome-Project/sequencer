@@ -38,14 +38,24 @@ class FulltextProcessor():
 
     def __init__(self, modules):
         self.modules = modules
+        self.time = 0
 
     def run(self, book):
+        processor_tic = time.perf_counter()
         for m in self.modules:
+            module_tic = time.perf_counter()
             self.modules[m].run(book.plaintext)
+            module_toc = time.perf_counter()
+            self.modules[m].time = round(module_toc - module_tic, 3)
+        processor_toc = time.perf_counter()
+        self.time = round(processor_toc - processor_tic, 3)
 
     @property
     def results(self):
-        return {m: self.modules[m].results for m in self.modules}
+        return {
+            "modules": {m: self.modules[m].results for m in self.modules},
+            "total_time": self.time
+        }
 
 
 class ReadingLevelModule:
@@ -56,10 +66,7 @@ class ReadingLevelModule:
 
     def run(self, doc, **kwargs):
         import textstat
-        tic = time.perf_counter()
         self.flesch_kincaid_grade = textstat.flesch_kincaid_grade(doc)
-        toc = time.perf_counter()
-        self.time = round(toc - tic, 3)
 
     @property
     def results(self):
@@ -80,20 +87,37 @@ class NGramProcessor():
         self.n = n
         self.threshold = threshold
         self.stop_words = stop_words
+        # use token_count as word count for profiler
+        self.token_count = 0
+        self.time = 0
+        self.tokenization_time = 0
 
     def run(self, book):
+        book.plaintext  # Priming memoization
+        processor_tic = time.perf_counter()
         self.terms = self.fulltext_to_ngrams(
             book.plaintext, n=self.n, stop_words=self.stop_words)
+        self.tokenization_time = round(time.perf_counter() - processor_tic, 3)
         for m in self.modules:
-            tic = time.perf_counter()
+            module_tic = time.perf_counter()
             for i, term in enumerate(self.terms):
+                self.token_count += 1
                 self.modules[m].run(term, threshold=self.threshold, index=i)
-            toc = time.perf_counter()
-            self.modules[m].time = round(toc - tic, 3)
+            module_toc = time.perf_counter()
+            self.modules[m].time = round(module_toc - module_tic, 3)
+        processor_toc = time.perf_counter()
+        self.time = round(processor_toc - processor_tic, 3)
 
     @property
     def results(self):
-        return {m: self.modules[m].results for m in self.modules}
+        return {
+            "modules": {
+                m: self.modules[m].results for m in self.modules
+            },
+            "total_time": self.time,
+            "tokenization_time": self.tokenization_time,
+            "total_tokens": self.token_count
+        }
 
     @staticmethod
     def tokens_to_ngrams(tokens, n=2):
@@ -103,7 +127,6 @@ class NGramProcessor():
     @classmethod
     def fulltext_to_ngrams(cls, fulltext, n=1, stop_words=None,
                            punctuation='!"#$%&\'()*+,.-;<=>?@[\\]^`{|}*'):
-        fulltext_to_ngrams_tic = time.perf_counter()
         stop_words = stop_words or {}
         def clean(fulltext):
             return ''.join(c.encode("ascii", "ignore").decode() for c in (
@@ -113,9 +136,6 @@ class NGramProcessor():
                 .replace('\n', ' ')
             ) if c not in punctuation)
         tokens = [t.strip() for t in clean(fulltext).split(' ') if t and t not in stop_words]
-        fulltext_to_ngrams_toc = time.perf_counter()
-        fulltext_to_ngrams_time = round(fulltext_to_ngrams_toc - fulltext_to_ngrams_tic, 3)
-        print(f"fulltext_to_ngrams took {fulltext_to_ngrams_time} seconds to complete.")
         return cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
 
 
@@ -135,7 +155,7 @@ class WordFreqModule:
             "time": self.time,
             "results": sorted(
                 [items for items in self.freqmap.items()
-                 if not self.threshold or items[1] > self.threshold],
+                 if not self.threshold or items[1] >= self.threshold],
                 key=lambda k_v: k_v[0], reverse=True)
         }
 
@@ -144,6 +164,7 @@ class ExtractorModule:
     def __init__(self, extractor):
         self.extractor = extractor
         self.matches = []
+        self.time = 0
 
     def run(self, term, term_index=None, **kwargs):
         _term = self.extractor(term)
@@ -152,7 +173,10 @@ class ExtractorModule:
 
     @property
     def results(self):
-        return self.matches
+        return{
+            "results": self.matches,
+            "time": self.time
+        }
 
 
 class UrlExtractorModule(ExtractorModule):
@@ -189,16 +213,26 @@ class PageTypeProcessor:
 
     def __init__(self, modules):
         self.modules = modules
+        self.time = 0
 
     def run(self, book):
+        processor_tic = time.perf_counter()
         utf8_parser = etree.XMLParser(encoding='utf-8')
         node = etree.fromstring(book.xml.encode('utf-8'), parser=utf8_parser)
-        for x in node.iter('OBJECT'):
-            for m in self.modules:
+        for m in self.modules:
+            module_tic = time.perf_counter()
+            for x in node.iter('OBJECT'):
                 self.modules[m].run(x)
+            module_toc = time.perf_counter()
+            self.modules[m].time = round(module_toc - module_tic, 3)
+        processor_toc = time.perf_counter()
+        self.time = round(processor_toc - processor_tic, 3)
     @property
     def results(self):
-        return {m: self.modules[m].results for m in self.modules}
+        return {
+            "modules": {m: self.modules[m].results for m in self.modules},
+            "total_time": self.time,
+        }
 
 class KeywordPageDetectorModule:
 
@@ -214,4 +248,8 @@ class KeywordPageDetectorModule:
                 self.matched_pages.append(current_page)
     @property
     def results(self):
-        return self.matched_pages
+        return{
+            "results": self.matched_pages,
+            "time": self.time,
+        }
+
