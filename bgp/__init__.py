@@ -13,6 +13,7 @@ __author__ = 'OBGP'
 import copy
 import json
 import os
+import sys
 import tempfile
 import time
 
@@ -20,7 +21,6 @@ import internetarchive as ia
 from bs4 import BeautifulSoup
 from internetarchive.config import get_config
 
-from bgp.modules.pagetypes import KeywordPageDetectorModule, PageTypeProcessor
 from bgp.modules.terms import (
     FulltextProcessor,
     IsbnExtractorModule,
@@ -28,6 +28,8 @@ from bgp.modules.terms import (
     ReadingLevelModule,
     UrlExtractorModule,
     WordFreqModule,
+    KeywordPageDetectorModule,
+    PageTypeProcessor
 )
 from bgp.utils import STOP_WORDS
 
@@ -37,22 +39,23 @@ IA = ia.get_session(s3_keys)
 ia.get_item = IA.get_item
 
 def _memoize_xml(self):
-    _memoize_xml_tic = time.perf_counter()
     if not hasattr(self, '_xml'):
+        _memoize_xml_tic = time.perf_counter()
         self._xml = self.download(formats=['Djvu XML'], return_responses=True)[0].text
-    _memoize_xml_toc = time.perf_counter()
-    _memoize_xml_time = round(_memoize_xml_toc - _memoize_xml_tic, 3)
-    print(f"_memoize_xml took {_memoize_xml_time} seconds to complete.")
+        _memoize_xml_toc = time.perf_counter()
+        self.xml_time = round(_memoize_xml_toc - _memoize_xml_tic, 3)
+        self.xml_mem_kb = sys.getsizeof(self._xml)
     return self._xml
 
 def _memoize_plaintext(self):
     """If converts xml to plaintext (only when needed) and memoizes result"""
-    _memoize_plaintext_tic = time.perf_counter()
     if hasattr(self, 'xml'):
         if not hasattr(self, '_plaintext'):
+            _memoize_plaintext_tic = time.perf_counter()
             self._plaintext = self.download(formats=['DjVuTXT'], return_responses=True)[0].text
-        _memoize_plaintext_toc = time.perf_counter()
-        _memoize_plaintext_time = round(_memoize_plaintext_toc - _memoize_plaintext_tic, 3)
+            _memoize_plaintext_toc = time.perf_counter()
+            self.plaintext_time = round(_memoize_plaintext_toc - _memoize_plaintext_tic, 3)
+            self.plaintext_mem_kb = sys.getsizeof(self._plaintext)
         return self._plaintext
     
 def get_book_items(query, rows=100, page=1, scope_all=False):
@@ -105,8 +108,12 @@ class Sequencer:
             data = {p: self.pipeline[p].results for p in self.pipeline}
             data['total_time'] = self.total_time
             data['_memoize_xml'] = {
-                'time': 1,
-                'kb': 2
+                'time': self.book.xml_time,
+                'kb': self.book.xml_mem_kb
+            }
+            data['_memoize_plaintext'] = {
+                'time': self.book.plaintext_time,
+                'kb': self.book.plaintext_mem_kb
             }
             data['version'] = __version__
             return data
