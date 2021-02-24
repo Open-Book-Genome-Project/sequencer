@@ -12,7 +12,9 @@ __author__ = 'OBGP'
 
 import copy
 import json
+import logging
 import os
+import requests
 import sys
 import tempfile
 import time
@@ -32,6 +34,12 @@ from bgp.modules.terms import (
     PageTypeProcessor
 )
 from bgp.utils import STOP_WORDS
+
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S',
+    filename='obgp_errors.log')
 
 s3_keys = get_config().get('s3')
 
@@ -128,14 +136,21 @@ class Sequencer:
         :param int rows: limit how many results returned
         :param int page: starting page to offset search results
         """
-        sequence_tic = time.perf_counter()
-        sq = self.Sequence(copy.deepcopy(self.pipeline))
-        sq.book = book if type(book) is ia.Item else ia.get_item(book)
-        for p in sq.pipeline:
-            sq.pipeline[p].run(sq.book)
-        sequence_toc = time.perf_counter()
-        sq.total_time = round(sequence_toc - sequence_tic, 3)
-        return sq
+        try:
+            sequence_tic = time.perf_counter()
+            sq = self.Sequence(copy.deepcopy(self.pipeline))
+            sq.book = book if type(book) is ia.Item else ia.get_item(book)
+            for p in sq.pipeline:
+                sq.pipeline[p].run(sq.book)
+            sequence_toc = time.perf_counter()
+            sq.total_time = round(sequence_toc - sequence_tic, 3)
+            return sq
+        except IndexError:
+            print(f"{sq.book.identifier} does not have DjvuXML and/or DjvuTXT to be sequenced!")
+            logging.error(f"{sq.book.identifier} does not have DjvuXML and/or DjvuTXT to be sequenced!")
+        except requests.exceptions.HTTPError:
+            print(f"{sq.book.identifier} DjvuXML and/or DjvuTXT is forbidden and can't be sequenced!")
+            logging.error(f"{sq.book.identifier} DjvuXML and/or DjvuTXT is forbidden and can't be sequenced!")
 
 DEFAULT_SEQUENCER = Sequencer({
     '2grams': NGramProcessor(modules={
