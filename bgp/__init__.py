@@ -161,8 +161,8 @@ DEFAULT_SEQUENCER = Sequencer({
         'isbns': IsbnExtractorModule(),
         'urls': UrlExtractorModule()
     }, n=1, stop_words=None),
-    'readinglevel': FulltextProcessor(modules={
-        'flesch_kincaid_grade': ReadingLevelModule()
+    'fulltext': FulltextProcessor(modules={
+        'readinglevel': ReadingLevelModule()
     }),
     'pagetypes': PageTypeProcessor(modules={
         'copyright_page': KeywordPageDetectorModule(keyword='copyright')
