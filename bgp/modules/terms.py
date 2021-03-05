@@ -81,7 +81,7 @@ class ReadingLevelModule:
         url = f'https://atlas-fab.lexile.com/free/books/{self.isbn}'
         headers = {'accept': 'application/json; version=1.0'}
         lexile = requests.get(url, headers=headers)
-        # Checks if lexile exists for ISBN. If doesn't exist value remians 'None'.
+        # Checks if lexile exists for ISBN. If doesn't exist value remains 'None'.
         # If lexile does exist but no age range, value will be 'None'.
         # If no ISBN, value will be 'None'.
         if lexile.status_code == 200:
