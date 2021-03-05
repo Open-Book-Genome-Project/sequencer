@@ -76,6 +76,7 @@ class ReadingLevelModule:
     def run(self, doc, **kwargs):
         import requests
         from readability import Readability
+        from readability.scorers.flesch_kincaid import ReadabilityException
         import textstat
         self.flesch_kincaid_grade = textstat.flesch_kincaid_grade(doc)
         url = f'https://atlas-fab.lexile.com/free/books/{self.isbn}'
@@ -87,11 +88,15 @@ class ReadingLevelModule:
         if lexile.status_code == 200:
             self.lexile_min_age = str(lexile.json()['data']['work']['min_age'])
             self.lexile_max_age = str(lexile.json()['data']['work']['max_age'])
-        r = Readability(doc)
-        fk = r.flesch_kincaid()
-        s = r.smog()
-        self.readability_fk_score = fk.score
-        self.readability_s_score = s.score
+        try:
+            r = Readability(doc)
+            fk = r.flesch_kincaid()
+            s = r.smog()
+            self.readability_fk_score = fk.score
+            self.readability_s_score = s.score
+        # If less than 100 words
+        except ReadabilityException:
+            pass
 
     @property
     def results(self):
