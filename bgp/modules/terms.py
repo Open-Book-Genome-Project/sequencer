@@ -79,7 +79,7 @@ class ReadingLevelModule:
         from readability.scorers.flesch_kincaid import ReadabilityException
         import textstat
         self.flesch_kincaid_grade = textstat.flesch_kincaid_grade(doc)
-        url = f'https://atlas-fab.lexile.com/free/books/{self.isbn}'
+        url = 'https://atlas-fab.lexile.com/free/books/' + self.isbn
         headers = {'accept': 'application/json; version=1.0'}
         lexile = requests.get(url, headers=headers)
         # Checks if lexile exists for ISBN. If doesn't exist value remains 'None'.
