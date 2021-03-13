@@ -65,7 +65,7 @@ class FulltextProcessor():
 class ReadingLevelModule:
 
     def __init__(self):
-        self.flesch_kincaid_grade= None
+#        self.flesch_kincaid_grade= None
         self.isbn= None
         self.lexile_min_age= 'None'
         self.lexile_max_age= 'None'
@@ -77,8 +77,8 @@ class ReadingLevelModule:
         import requests
         from readability import Readability
         from readability.scorers.flesch_kincaid import ReadabilityException
-        import textstat
-        self.flesch_kincaid_grade = textstat.flesch_kincaid_grade(doc)
+#        import textstat
+#        self.flesch_kincaid_grade = textstat.flesch_kincaid_grade(doc)
         url = 'https://atlas-fab.lexile.com/free/books/' + self.isbn
         headers = {'accept': 'application/json; version=1.0'}
         lexile = requests.get(url, headers=headers)
@@ -110,10 +110,10 @@ class ReadingLevelModule:
                 "readability": {
                     "flesch_kincaid_score": self.readability_fk_score,
                     "smog_score": self.readability_s_score,
-                },
-                "textstat": {
-                    "flesch_kincaid_score": self.flesch_kincaid_grade
-                }
+                }#,
+#                "textstat": {
+#                    "flesch_kincaid_score": self.flesch_kincaid_grade
+#                }
             }
         }
     
