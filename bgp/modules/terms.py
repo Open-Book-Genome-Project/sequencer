@@ -44,6 +44,10 @@ class FulltextProcessor():
         processor_tic = time.perf_counter()
         for m in self.modules:
             module_tic = time.perf_counter()
+            try:
+                self.modules[m].isbn = book.metadata['isbn'][0]
+            except KeyError:
+                pass
             self.modules[m].run(book.plaintext)
             module_toc = time.perf_counter()
             self.modules[m].time = round(module_toc - module_tic, 3)
@@ -61,18 +65,56 @@ class FulltextProcessor():
 class ReadingLevelModule:
 
     def __init__(self):
-        self.flesch_kincaid_grade= None
+#        self.flesch_kincaid_grade= None
+        self.isbn= None
+        self.lexile_min_age= 'None'
+        self.lexile_max_age= 'None'
+        self.readability_fk_score= None
+        self.readability_s_score= None
         self.time = 0
 
     def run(self, doc, **kwargs):
-        import textstat
-        self.flesch_kincaid_grade = textstat.flesch_kincaid_grade(doc)
+        import requests
+        from readability import Readability
+        from readability.scorers.flesch_kincaid import ReadabilityException
+#        import textstat
+#        self.flesch_kincaid_grade = textstat.flesch_kincaid_grade(doc)
+        url = 'https://atlas-fab.lexile.com/free/books/' + str(self.isbn)
+        headers = {'accept': 'application/json; version=1.0'}
+        lexile = requests.get(url, headers=headers)
+        # Checks if lexile exists for ISBN. If doesn't exist value remains 'None'.
+        # If lexile does exist but no age range, value will be 'None'.
+        # If no ISBN, value will be 'None'.
+        if lexile.status_code == 200:
+            self.lexile_min_age = str(lexile.json()['data']['work']['min_age'])
+            self.lexile_max_age = str(lexile.json()['data']['work']['max_age'])
+        try:
+            r = Readability(doc)
+            fk = r.flesch_kincaid()
+            s = r.smog()
+            self.readability_fk_score = fk.score
+            self.readability_s_score = s.score
+        # If less than 100 words
+        except ReadabilityException:
+            pass
 
     @property
     def results(self):
         return {
             "time": self.time,
-            "results": self.flesch_kincaid_grade
+            "results": {
+                "lexile": {
+                    "min_age": self.lexile_min_age,
+                    "max_age": self.lexile_max_age
+                },
+                "readability": {
+                    "flesch_kincaid_score": self.readability_fk_score,
+                    "smog_score": self.readability_s_score,
+                }#,
+#                "textstat": {
+#                    "flesch_kincaid_score": self.flesch_kincaid_grade
+#                }
+            }
         }
     
 class NGramProcessor():

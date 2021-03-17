@@ -13,6 +13,7 @@ __author__ = 'OBGP'
 import copy
 import json
 import logging
+import nltk
 import os
 import requests
 import sys
@@ -45,6 +46,12 @@ s3_keys = get_config().get('s3')
 
 IA = ia.get_session(s3_keys)
 ia.get_item = IA.get_item
+
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    print('Downloading Punkt Tokenizer...')
+    nltk.download('punkt')
 
 def _memoize_xml(self):
     if not hasattr(self, '_xml'):
@@ -93,12 +100,12 @@ class Sequencer:
             self.pipeline = pipeline
             self.total_time = 0
 
-        def save(self, path=""):
+        def save(self, path=''):
             # trailing slash needed for path
             if getattr(self, 'book'):
                 if path and not os.path.exists(path):
                     os.makedirs(path)
-                with open(f"{path}{self.book.identifier}_genome.json", "w") as txt:
+                with open(path + self.book.identifier + '_genome.json', 'w') as txt:
                     txt.write(json.dumps(self.results))
 
         def upload(self, itemid=None):
@@ -146,11 +153,11 @@ class Sequencer:
             sq.total_time = round(sequence_toc - sequence_tic, 3)
             return sq
         except IndexError:
-            print(f"{sq.book.identifier} does not have DjvuXML and/or DjvuTXT to be sequenced!")
-            logging.error(f"{sq.book.identifier} does not have DjvuXML and/or DjvuTXT to be sequenced!")
+            print(sq.book.identifier + 'does not have DjvuXML and/or DjvuTXT to be sequenced!')
+            logging.error(sq.book.identifier + 'does not have DjvuXML and/or DjvuTXT to be sequenced!')
         except requests.exceptions.HTTPError:
-            print(f"{sq.book.identifier} DjvuXML and/or DjvuTXT is forbidden and can't be sequenced!")
-            logging.error(f"{sq.book.identifier} DjvuXML and/or DjvuTXT is forbidden and can't be sequenced!")
+            print(sq.book.identifier + 'DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
+            logging.error(sq.book.identifier + 'DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
 
 DEFAULT_SEQUENCER = Sequencer({
     '2grams': NGramProcessor(modules={
@@ -161,8 +168,8 @@ DEFAULT_SEQUENCER = Sequencer({
         'isbns': IsbnExtractorModule(),
         'urls': UrlExtractorModule()
     }, n=1, stop_words=None),
-    'readinglevel': FulltextProcessor(modules={
-        'flesch_kincaid_grade': ReadingLevelModule()
+    'fulltext': FulltextProcessor(modules={
+        'readinglevel': ReadingLevelModule()
     }),
     'pagetypes': PageTypeProcessor(modules={
         'copyright_page': KeywordPageDetectorModule(keyword='copyright')

@@ -3,3 +3,4 @@ internetarchive==1.9.0
 lxml==4.6.2
 configparser==4.0.2
 textstat==0.5.7
+py-readability-metrics==1.4.5
