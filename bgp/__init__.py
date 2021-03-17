@@ -7,7 +7,6 @@
 """
 
 __title__ = 'bgp'
-__version__ = '0.0.36'
 __author__ = 'OBGP'
 
 import copy
@@ -35,6 +34,7 @@ from bgp.modules.terms import (
     PageTypeProcessor
 )
 from bgp.utils import STOP_WORDS
+from subprocess import PIPE, Popen, STDOUT
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -87,6 +87,10 @@ def get_book_items(query, rows=100, page=1, scope_all=False):
     # this may need to get run as a session (priv'd access)
     return ia.search_items(query, params=params).iter_as_items()
 
+def get_software_version():  # -> str:
+    cmd = "git rev-parse --short HEAD --".split()
+    return str(Popen(cmd, stdout=PIPE, stderr=STDOUT).stdout.read().decode().strip())
+
 
 ia.get_book_items = get_book_items
 ia.Item.xml = property(_memoize_xml)
@@ -130,7 +134,7 @@ class Sequencer:
                 'time': self.book.plaintext_time,
                 'kb': self.book.plaintext_mem_kb
             }
-            data['version'] = __version__
+            data['version'] = get_software_version()
             return data
 
     def __init__(self, pipeline):
