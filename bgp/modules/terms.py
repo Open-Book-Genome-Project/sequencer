@@ -238,14 +238,25 @@ class IsbnExtractorModule(ExtractorModule):
     @staticmethod
     def validate_isbn(isbn):
         isbn = isbn.replace("-", "").replace(" ", "").upper();
-        match = re.search(r'^(\d{9})(\d|X)$', isbn)
-        if not match:
+        match10 = re.search(r'^(\d{9})(\d|X)$', isbn)
+        match13 = re.search(r'^(\d{12})(\d)$', isbn)
+
+        if match10:
+            digits = match10.group(1)
+            check_digit = 10 if match10.group(2) == 'X' else int(match10.group(2))
+            result = sum((i + 1) * int(digit) for i, digit in enumerate(digits))
+            if (result % 11) == check_digit:
+                return match10.group()
+        elif match13:
+            digits = match13.group()
+            if len(digits) != 13:
+                return False
+            product = (sum(int(ch) for ch in digits[::2])
+                       + sum(int(ch) * 3 for ch in digits[1::2]))
+            if product % 10 == 0:
+                return match13.group()
+        else:
             return False
-        digits = match.group(1)
-        check_digit = 10 if match.group(2) == 'X' else int(match.group(2))
-        result = sum((i + 1) * int(digit) for i, digit in enumerate(digits))
-        if (result % 11) == check_digit:
-            return match.group()
 
     def __init__(self):
         super().__init__(self.validate_isbn)
@@ -327,4 +338,4 @@ class CopyrightPageDetectorModule(KeywordPageDetectorModule):
         }
 
     def __init__(self):
-        super().__init__(['copyright'], extractor=self.extractor, match_limit=1)
+        super().__init__(['copyright', '©'], extractor=self.extractor, match_limit=1)

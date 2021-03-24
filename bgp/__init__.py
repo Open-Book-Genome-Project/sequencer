@@ -169,7 +169,6 @@ DEFAULT_SEQUENCER = Sequencer({
     }, n=2, threshold=2, stop_words=STOP_WORDS),
     '1grams': NGramProcessor(modules={
         'term_freq': WordFreqModule(),
-        'isbns': IsbnExtractorModule(),
         'urls': UrlExtractorModule()
     }, n=1, stop_words=None),
     'fulltext': FulltextProcessor(modules={
