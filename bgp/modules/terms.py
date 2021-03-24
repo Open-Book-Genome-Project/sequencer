@@ -169,8 +169,14 @@ class NGramProcessor():
     @classmethod
     def fulltext_to_ngrams(cls, fulltext, n=1, stop_words=None):
         stop_words = stop_words or {}
+
         def clean(fulltext):
-            return fulltext.lower().replace('. ', ' ').replace('\n-', '').replace('\n', ' ')
+            return (
+                fulltext.lower()
+                .replace('. ', ' ')
+                .replace('\n-', '')
+                .replace('\n', ' ')
+            )
         tokens = [
             t.strip() for t in clean(fulltext).split(' ')
             if t and t not in stop_words
