@@ -30,7 +30,7 @@ from bgp.modules.terms import (
     ReadingLevelModule,
     UrlExtractorModule,
     WordFreqModule,
-    KeywordPageDetectorModule,
+    CopyrightPageDetectorModule,
     PageTypeProcessor
 )
 from bgp.utils import STOP_WORDS
@@ -176,6 +176,6 @@ DEFAULT_SEQUENCER = Sequencer({
         'readinglevel': ReadingLevelModule()
     }),
     'pagetypes': PageTypeProcessor(modules={
-        'copyright_page': KeywordPageDetectorModule(keyword='copyright')
+        'copyright_page': CopyrightPageDetectorModule()
     })
 })
