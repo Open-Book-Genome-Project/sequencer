@@ -186,7 +186,7 @@ class NGramProcessor():
 
 class WordFreqModule:
 
-    def __init__(self, punctuation='!"#$%&\'\/:()*+,.-;<=>?@[\\]^`{|}*'):
+    def __init__(self, punctuation=r'!"#$%&\'\/:()*+,.-;<=>?@[\\]^`{|}*'):
         self.punctuation = punctuation
         self.freqmap = defaultdict(int)
         self.time = 0
