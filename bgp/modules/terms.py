@@ -47,11 +47,7 @@ class FulltextProcessor():
         processor_tic = time.perf_counter()
         for m in self.modules:
             module_tic = time.perf_counter()
-            try:
-                self.modules[m].isbn = book.metadata['isbn'][0]
-            except KeyError:
-                pass
-            self.modules[m].run(book.plaintext)
+            self.modules[m].run(book)
             module_toc = time.perf_counter()
             self.modules[m].time = round(module_toc - module_tic, 3)
         processor_toc = time.perf_counter()
@@ -68,24 +64,27 @@ class FulltextProcessor():
 class ReadingLevelModule:
 
     def __init__(self):
-        self.isbn= None
         self.lexile_min_age= 'None'
         self.lexile_max_age= 'None'
         self.readability_fk_score= None
         self.readability_s_score= None
         self.time = 0
 
-    def run(self, doc, **kwargs):
+    def run(self, book, **kwargs):
+        doc = book.plaintext
+        isbn = 'isbn' in book.metadata and book.metadata['isbn'][0]
 
-        url = 'https://atlas-fab.lexile.com/free/books/' + str(self.isbn)
+        url = 'https://atlas-fab.lexile.com/free/books/' + str(isbn)
+
         headers = {'accept': 'application/json; version=1.0'}
         lexile = requests.get(url, headers=headers)
         # Checks if lexile exists for ISBN. If doesn't exist value remains 'None'.
         # If lexile does exist but no age range, value will be 'None'.
         # If no ISBN, value will be 'None'.
         if lexile.status_code == 200:
-            self.lexile_min_age = str(lexile.json()['data']['work']['min_age'])
-            self.lexile_max_age = str(lexile.json()['data']['work']['max_age'])
+            lexile_work = lexile.json()['data']['work']
+            self.lexile_min_age = str(lexile_work['min_age'])
+            self.lexile_max_age = str(lexile_work['max_age'])
         try:
             r = Readability(doc)
             fk = r.flesch_kincaid()
