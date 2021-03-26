@@ -162,29 +162,37 @@ class NGramProcessor():
         return [" ".join(ngram) for ngram in ngrams]
 
     @classmethod
-    def fulltext_to_ngrams(cls, fulltext, n=1, stop_words=None,
-                           punctuation='!"#$%&\'()*+,.-;<=>?@[\\]^`{|}*'):
+    def fulltext_to_ngrams(cls, fulltext, n=1, stop_words=None):
         stop_words = stop_words or {}
+
         def clean(fulltext):
-            return ''.join(c.encode("ascii", "ignore").decode() for c in (
+            return (
                 fulltext.lower()
                 .replace('. ', ' ')
                 .replace('\n-', '')
                 .replace('\n', ' ')
-            ) if c not in punctuation)
-        tokens = [t.strip() for t in clean(fulltext).split(' ') if t and t not in stop_words]
+            )
+        tokens = [
+            t.strip() for t in clean(fulltext).split(' ')
+            if t and t not in stop_words
+        ]
         return cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
 
 
 class WordFreqModule:
 
-    def __init__(self):
+    def __init__(self, punctuation=r'!"#$%&\'\/:()*+,.-;<=>?@[\\]^`{|}*'):
+        self.punctuation = punctuation
         self.freqmap = defaultdict(int)
         self.time = 0
 
     def run(self, word, threshold=None, **kwargs):
+        clean_word = ''.join(
+            c.encode("ascii", "ignore").decode() for c in (word)
+            if c not in self.punctuation
+        )
         self.threshold = threshold
-        self.freqmap[word] += 1
+        self.freqmap[clean_word] += 1
 
     @property
     def results(self):
@@ -203,10 +211,10 @@ class ExtractorModule:
         self.matches = []
         self.time = 0
 
-    def run(self, term, term_index=None, **kwargs):
+    def run(self, term, **kwargs):
         _term = self.extractor(term)
         if _term:
-            self.matches.append((_term, term_index))
+            self.matches.append(_term)
 
     @property
     def results(self):
@@ -289,4 +297,3 @@ class KeywordPageDetectorModule:
             "results": self.matched_pages,
             "time": self.time,
         }
-
