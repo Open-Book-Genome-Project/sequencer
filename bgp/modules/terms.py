@@ -192,7 +192,10 @@ class WordFreqModule:
         self.time = 0
 
     def run(self, word, threshold=None, **kwargs):
-        clean_word = ''.join(c.encode("ascii", "ignore").decode() for c in (word) if c not in self.punctuation)
+        clean_word = ''.join(
+            c.encode("ascii", "ignore").decode() for c in (word)
+            if c not in self.punctuation
+        )
         self.threshold = threshold
         self.freqmap[clean_word] += 1
 
@@ -299,4 +302,3 @@ class KeywordPageDetectorModule:
             "results": self.matched_pages,
             "time": self.time,
         }
-
