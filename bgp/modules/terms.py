@@ -193,7 +193,7 @@ class WordFreqModule:
             "results": sorted(
                 [items for items in self.freqmap.items()
                  if not self.threshold or items[1] >= self.threshold],
-                key=lambda k_v: k_v[0], reverse=True)
+                key=lambda k_v: k_v[1], reverse=True)
         }
 
 class ExtractorModule:
