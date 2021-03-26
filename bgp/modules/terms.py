@@ -1,10 +1,13 @@
 import re
-import string
 from collections import defaultdict
 
+import requests
+import time
 from lxml import etree
 
-import time
+from readability import Readability
+from readability.scorers.flesch_kincaid import ReadabilityException
+
 
 STOP_WORDS = set("""'d 'll 'm 're 's 've a about above across after afterwards
 again against all almost alone along already also although always am among
@@ -65,7 +68,6 @@ class FulltextProcessor():
 class ReadingLevelModule:
 
     def __init__(self):
-#        self.flesch_kincaid_grade= None
         self.isbn= None
         self.lexile_min_age= 'None'
         self.lexile_max_age= 'None'
@@ -74,11 +76,7 @@ class ReadingLevelModule:
         self.time = 0
 
     def run(self, doc, **kwargs):
-        import requests
-        from readability import Readability
-        from readability.scorers.flesch_kincaid import ReadabilityException
-#        import textstat
-#        self.flesch_kincaid_grade = textstat.flesch_kincaid_grade(doc)
+
         url = 'https://atlas-fab.lexile.com/free/books/' + str(self.isbn)
         headers = {'accept': 'application/json; version=1.0'}
         lexile = requests.get(url, headers=headers)
@@ -110,10 +108,7 @@ class ReadingLevelModule:
                 "readability": {
                     "flesch_kincaid_score": self.readability_fk_score,
                     "smog_score": self.readability_s_score,
-                }#,
-#                "textstat": {
-#                    "flesch_kincaid_score": self.flesch_kincaid_grade
-#                }
+                }
             }
         }
     
