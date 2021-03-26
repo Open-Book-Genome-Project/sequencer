@@ -240,14 +240,25 @@ class IsbnExtractorModule(ExtractorModule):
     @staticmethod
     def validate_isbn(isbn):
         isbn = isbn.replace("-", "").replace(" ", "").upper();
-        match = re.search(r'^(\d{9})(\d|X)$', isbn)
-        if not match:
+        match10 = re.search(r'^(\d{9})(\d|X)$', isbn)
+        match13 = re.search(r'^(\d{12})(\d)$', isbn)
+
+        if match10:
+            digits = match10.group(1)
+            check_digit = 10 if match10.group(2) == 'X' else int(match10.group(2))
+            result = sum((i + 1) * int(digit) for i, digit in enumerate(digits))
+            if (result % 11) == check_digit:
+                return match10.group()
+        elif match13:
+            digits = match13.group()
+            if len(digits) != 13:
+                return False
+            product = (sum(int(ch) for ch in digits[::2])
+                       + sum(int(ch) * 3 for ch in digits[1::2]))
+            if product % 10 == 0:
+                return match13.group()
+        else:
             return False
-        digits = match.group(1)
-        check_digit = 10 if match.group(2) == 'X' else int(match.group(2))
-        result = sum((i + 1) * int(digit) for i, digit in enumerate(digits))
-        if (result % 11) == check_digit:
-            return match.group()
 
     def __init__(self):
         super().__init__(self.validate_isbn)
@@ -265,8 +276,8 @@ class PageTypeProcessor:
         node = etree.fromstring(book.xml.encode('utf-8'), parser=utf8_parser)
         for m in self.modules:
             module_tic = time.perf_counter()
-            for x in node.iter('OBJECT'):
-                self.modules[m].run(x)
+            for page in node.iter('OBJECT'):
+                self.modules[m].run(page)
             module_toc = time.perf_counter()
             self.modules[m].time = round(module_toc - module_tic, 3)
         processor_toc = time.perf_counter()
@@ -280,19 +291,53 @@ class PageTypeProcessor:
 
 class KeywordPageDetectorModule:
 
-    def __init__(self, keyword):
-        self.keyword = keyword.lower()
+    def __init__(self, keywords, extractor=None, match_limit=None):
+        self.extractor = extractor
+        self.keywords = keywords
         self.matched_pages = []
+        self.match_limit = match_limit
 
-    def run(self,x):
-        for word in x.iter('WORD'):
-            if(word.text.lower() == self.keyword):
-                param = x[0].attrib['value'].split('.')[0]
-                current_page = param[-4:]
-                self.matched_pages.append(current_page)
+    def run(self, page):
+        if not self.match_limit or len(self.matched_pages) < self.match_limit:
+            for word in page.iter('WORD'):
+                if word.text.lower() in self.keywords:
+                    param = page[0].attrib['value'].split('.')[0]
+                    current_page = param[-4:]
+                    match = {
+                        'page': current_page,
+                    }
+                    if self.extractor:
+                        match.update(self.extractor(page))
+                    self.matched_pages.append(match)
+                    # If we've found a match, we no longer need to
+                    # keep processing this page; exit for loop
+                    break
     @property
     def results(self):
-        return{
+        return {
             "results": self.matched_pages,
-            "time": self.time,
+            "time": self.time
         }
+
+
+class CopyrightPageDetectorModule(KeywordPageDetectorModule):
+
+    def extractor(self, page):
+        in_isbn = False
+        isbns = []
+
+        for word in page.iter('WORD'):
+            if in_isbn:
+                isbn = IsbnExtractorModule.validate_isbn(word.text)
+                if isbn:
+                    isbns.append(isbn)
+                in_isbn = False
+            if word.text.lower() == 'isbn':
+                in_isbn = True
+
+        return {
+            'isbns': isbns,
+        }
+
+    def __init__(self):
+        super().__init__(['copyright', '©'], extractor=self.extractor, match_limit=1)

@@ -30,7 +30,7 @@ from bgp.modules.terms import (
     ReadingLevelModule,
     UrlExtractorModule,
     WordFreqModule,
-    KeywordPageDetectorModule,
+    CopyrightPageDetectorModule,
     PageTypeProcessor
 )
 from bgp.utils import STOP_WORDS
@@ -169,13 +169,12 @@ DEFAULT_SEQUENCER = Sequencer({
     }, n=2, threshold=2, stop_words=STOP_WORDS),
     '1grams': NGramProcessor(modules={
         'term_freq': WordFreqModule(),
-        'isbns': IsbnExtractorModule(),
         'urls': UrlExtractorModule()
     }, n=1, stop_words=None),
     'fulltext': FulltextProcessor(modules={
         'readinglevel': ReadingLevelModule()
     }),
     'pagetypes': PageTypeProcessor(modules={
-        'copyright_page': KeywordPageDetectorModule(keyword='copyright')
+        'copyright_page': CopyrightPageDetectorModule()
     })
 })
