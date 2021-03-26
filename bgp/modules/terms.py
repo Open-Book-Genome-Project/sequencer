@@ -1,10 +1,13 @@
 import re
-import string
 from collections import defaultdict
 
+import requests
+import time
 from lxml import etree
 
-import time
+from readability import Readability
+from readability.scorers.flesch_kincaid import ReadabilityException
+
 
 STOP_WORDS = set("""'d 'll 'm 're 's 've a about above across after afterwards
 again against all almost alone along already also although always am among
@@ -44,11 +47,7 @@ class FulltextProcessor():
         processor_tic = time.perf_counter()
         for m in self.modules:
             module_tic = time.perf_counter()
-            try:
-                self.modules[m].isbn = book.metadata['isbn'][0]
-            except KeyError:
-                pass
-            self.modules[m].run(book.plaintext)
+            self.modules[m].run(book)
             module_toc = time.perf_counter()
             self.modules[m].time = round(module_toc - module_tic, 3)
         processor_toc = time.perf_counter()
@@ -65,29 +64,27 @@ class FulltextProcessor():
 class ReadingLevelModule:
 
     def __init__(self):
-#        self.flesch_kincaid_grade= None
-        self.isbn= None
         self.lexile_min_age= 'None'
         self.lexile_max_age= 'None'
         self.readability_fk_score= None
         self.readability_s_score= None
         self.time = 0
 
-    def run(self, doc, **kwargs):
-        import requests
-        from readability import Readability
-        from readability.scorers.flesch_kincaid import ReadabilityException
-#        import textstat
-#        self.flesch_kincaid_grade = textstat.flesch_kincaid_grade(doc)
-        url = 'https://atlas-fab.lexile.com/free/books/' + str(self.isbn)
+    def run(self, book, **kwargs):
+        doc = book.plaintext
+        isbn = 'isbn' in book.metadata and book.metadata['isbn'][0]
+
+        url = 'https://atlas-fab.lexile.com/free/books/' + str(isbn)
+
         headers = {'accept': 'application/json; version=1.0'}
         lexile = requests.get(url, headers=headers)
         # Checks if lexile exists for ISBN. If doesn't exist value remains 'None'.
         # If lexile does exist but no age range, value will be 'None'.
         # If no ISBN, value will be 'None'.
         if lexile.status_code == 200:
-            self.lexile_min_age = str(lexile.json()['data']['work']['min_age'])
-            self.lexile_max_age = str(lexile.json()['data']['work']['max_age'])
+            lexile_work = lexile.json()['data']['work']
+            self.lexile_min_age = str(lexile_work['min_age'])
+            self.lexile_max_age = str(lexile_work['max_age'])
         try:
             r = Readability(doc)
             fk = r.flesch_kincaid()
@@ -110,10 +107,7 @@ class ReadingLevelModule:
                 "readability": {
                     "flesch_kincaid_score": self.readability_fk_score,
                     "smog_score": self.readability_s_score,
-                }#,
-#                "textstat": {
-#                    "flesch_kincaid_score": self.flesch_kincaid_grade
-#                }
+                }
             }
         }
     
@@ -167,29 +161,37 @@ class NGramProcessor():
         return [" ".join(ngram) for ngram in ngrams]
 
     @classmethod
-    def fulltext_to_ngrams(cls, fulltext, n=1, stop_words=None,
-                           punctuation='!"#$%&\'()*+,.-;<=>?@[\\]^`{|}*'):
+    def fulltext_to_ngrams(cls, fulltext, n=1, stop_words=None):
         stop_words = stop_words or {}
+
         def clean(fulltext):
-            return ''.join(c.encode("ascii", "ignore").decode() for c in (
+            return (
                 fulltext.lower()
                 .replace('. ', ' ')
                 .replace('\n-', '')
                 .replace('\n', ' ')
-            ) if c not in punctuation)
-        tokens = [t.strip() for t in clean(fulltext).split(' ') if t and t not in stop_words]
+            )
+        tokens = [
+            t.strip() for t in clean(fulltext).split(' ')
+            if t and t not in stop_words
+        ]
         return cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
 
 
 class WordFreqModule:
 
-    def __init__(self):
+    def __init__(self, punctuation=r'!"#$%&\'\/:()*+,.-;<=>?@[\\]^`{|}*'):
+        self.punctuation = punctuation
         self.freqmap = defaultdict(int)
         self.time = 0
 
     def run(self, word, threshold=None, **kwargs):
+        clean_word = ''.join(
+            c.encode("ascii", "ignore").decode() for c in (word)
+            if c not in self.punctuation
+        )
         self.threshold = threshold
-        self.freqmap[word] += 1
+        self.freqmap[clean_word] += 1
 
     @property
     def results(self):
@@ -198,7 +200,7 @@ class WordFreqModule:
             "results": sorted(
                 [items for items in self.freqmap.items()
                  if not self.threshold or items[1] >= self.threshold],
-                key=lambda k_v: k_v[0], reverse=True)
+                key=lambda k_v: k_v[1], reverse=True)
         }
 
 class ExtractorModule:
@@ -208,10 +210,10 @@ class ExtractorModule:
         self.matches = []
         self.time = 0
 
-    def run(self, term, term_index=None, **kwargs):
+    def run(self, term, **kwargs):
         _term = self.extractor(term)
         if _term:
-            self.matches.append((_term, term_index))
+            self.matches.append(_term)
 
     @property
     def results(self):
