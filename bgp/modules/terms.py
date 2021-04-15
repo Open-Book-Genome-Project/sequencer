@@ -9,6 +9,7 @@ from readability import Readability
 from readability.scorers.flesch_kincaid import ReadabilityException
 
 
+PUNCTUATION = r'!"#$%&\'\/:()*+,.-;<=>?@[\\]^`{|}*'
 STOP_WORDS = set("""'d 'll 'm 're 's 've a about above across after afterwards
 again against all almost alone along already also although always am among
 amongst amount an and another any anyhow anyone anything anyway anywhere are
@@ -110,7 +111,7 @@ class ReadingLevelModule:
                 }
             }
         }
-    
+
 class NGramProcessor():
 
     def __init__(self, modules, n=1, threshold=None, stop_words=None):
@@ -177,18 +178,23 @@ class NGramProcessor():
         ]
         return cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
 
+def rmpunk(word, punctuation=PUNCTUATION):
+    return ''.join(
+        c.encode("ascii", "ignore").decode() for c in (word)
+        if c not in punctuation
+    )
+
 
 class WordFreqModule:
 
-    def __init__(self, punctuation=r'!"#$%&\'\/:()*+,.-;<=>?@[\\]^`{|}*'):
+    def __init__(self, punctuation=PUNCTUATION):
         self.punctuation = punctuation
         self.freqmap = defaultdict(int)
         self.time = 0
 
     def run(self, word, threshold=None, **kwargs):
-        clean_word = ''.join(
-            c.encode("ascii", "ignore").decode() for c in (word)
-            if c not in self.punctuation
+        clean_word = rmpunk(
+            word, punctuation=self.punctuation
         )
         self.threshold = threshold
         self.freqmap[clean_word] += 1
@@ -237,9 +243,12 @@ class UrlExtractorModule(ExtractorModule):
 
 class IsbnExtractorModule(ExtractorModule):
 
+
     @staticmethod
     def validate_isbn(isbn):
-        isbn = isbn.replace("-", "").replace(" ", "").upper();
+        isbn = rmpunk(isbn)
+        if len(isbn) == 9:
+            isbn = '0' + isbn
         match10 = re.search(r'^(\d{9})(\d|X)$', isbn)
         match13 = re.search(r'^(\d{12})(\d)$', isbn)
 
@@ -325,18 +334,26 @@ class CopyrightPageDetectorModule(KeywordPageDetectorModule):
     def extractor(self, page):
         in_isbn = False
         isbns = []
-
+        candidate_isbn = ""
+        mistakes = {"I": "1", "O": "0", "l": "1"}
         for word in page.iter('WORD'):
+            word = rmpunk(word.text)
             if in_isbn:
-                isbn = IsbnExtractorModule.validate_isbn(word.text)
-                if isbn:
-                    isbns.append(isbn)
-                in_isbn = False
-            if word.text.lower() == 'isbn':
+                if word in mistakes:
+                    candidate_isbn += mistakes[word]
+                elif word.isdigit():
+                    candidate_isbn += word
+                else:
+                    isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
+                    if isbn:
+                        isbns.append(isbn)
+                    in_isbn = False
+            if 'sbn' in word.lower():
                 in_isbn = True
 
         return {
             'isbns': isbns,
+            #'page':  " ".join(word.text for word in page.iter('WORD'))
         }
 
     def __init__(self):
