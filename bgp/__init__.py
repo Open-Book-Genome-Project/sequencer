@@ -137,6 +137,7 @@ class Sequencer:
                     'kb': self.book.plaintext_mem_kb
                 }
             data['version'] = get_software_version()
+            data['timestamp'] = time.time()
             return data
 
     def __init__(self, pipeline):
@@ -153,17 +154,21 @@ class Sequencer:
             sequence_tic = time.perf_counter()
             sq = self.Sequence(copy.deepcopy(self.pipeline))
             sq.book = book if type(book) is ia.Item else ia.get_item(book)
-            for p in sq.pipeline:
-                sq.pipeline[p].run(sq.book)
-            sequence_toc = time.perf_counter()
-            sq.total_time = round(sequence_toc - sequence_tic, 3)
-            return sq
+            if sq.book.exists:
+                for p in sq.pipeline:
+                    sq.pipeline[p].run(sq.book)
+                sequence_toc = time.perf_counter()
+                sq.total_time = round(sequence_toc - sequence_tic, 3)
+                return sq
+            else:
+                print(sq.book.identifier + ' - Item cannot be found.')
+                logging.error(sq.book.identifier + ' - Item cannot be found.')
         except IndexError:
-            print(sq.book.identifier + 'does not have DjvuXML and/or DjvuTXT to be sequenced!')
-            logging.error(sq.book.identifier + 'does not have DjvuXML and/or DjvuTXT to be sequenced!')
+            print(sq.book.identifier + ' - does not have DjvuXML and/or DjvuTXT to be sequenced!')
+            logging.error(sq.book.identifier + ' - does not have DjvuXML and/or DjvuTXT to be sequenced!')
         except requests.exceptions.HTTPError:
-            print(sq.book.identifier + 'DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
-            logging.error(sq.book.identifier + 'DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
+            print(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
+            logging.error(sq.book.identifier +  - 'DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
 
 DEFAULT_SEQUENCER = Sequencer({
     '2grams': NGramProcessor(modules={

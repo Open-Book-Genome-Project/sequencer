@@ -249,8 +249,8 @@ class IsbnExtractorModule(ExtractorModule):
         isbn = rmpunk(isbn)
         if len(isbn) == 9:
             isbn = '0' + isbn
-        match10 = re.search(r'^(\d{9})(\d|X)$', isbn)
-        match13 = re.search(r'^(\d{12})(\d)$', isbn)
+        match10 = re.search(r'^(\d{9})(\d|X)', isbn)
+        match13 = re.search(r'^(\d{12})(\d)', isbn)
 
         if match10:
             digits = match10.group(1)
@@ -258,16 +258,16 @@ class IsbnExtractorModule(ExtractorModule):
             result = sum((i + 1) * int(digit) for i, digit in enumerate(digits))
             if (result % 11) == check_digit:
                 return match10.group()
-        elif match13:
-            digits = match13.group()
-            if len(digits) != 13:
+            elif match13:
+                digits = match13.group()
+                if len(digits) != 13:
+                    return False
+                product = (sum(int(ch) for ch in digits[::2])
+                           + sum(int(ch) * 3 for ch in digits[1::2]))
+                if product % 10 == 0:
+                    return match13.group()
+            else:
                 return False
-            product = (sum(int(ch) for ch in digits[::2])
-                       + sum(int(ch) * 3 for ch in digits[1::2]))
-            if product % 10 == 0:
-                return match13.group()
-        else:
-            return False
 
     def __init__(self):
         super().__init__(self.validate_isbn)
@@ -341,15 +341,20 @@ class CopyrightPageDetectorModule(KeywordPageDetectorModule):
             if in_isbn:
                 if word in mistakes:
                     candidate_isbn += mistakes[word]
-                elif word.isdigit():
+                elif word[0:9].isdigit():
                     candidate_isbn += word
                 else:
                     isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
                     if isbn:
                         isbns.append(isbn)
                     in_isbn = False
+                    candidate_isbn = ""
             if 'sbn' in word.lower():
                 in_isbn = True
+        else:
+            isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
+            if isbn:
+                isbns.append(isbn)
 
         return {
             'isbns': isbns,
