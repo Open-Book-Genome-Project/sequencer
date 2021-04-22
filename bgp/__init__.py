@@ -58,7 +58,7 @@ def _memoize_xml(self):
         _memoize_xml_tic = time.perf_counter()
         try:
             self._xml = self.download(formats=['Djvu XML'], return_responses=True)[0].text
-        except request.exceptions.ReadTimeoutError as e:
+        except requests.exceptions.ReadTimeoutError as e:
             logging.error('Timeout for xml for item - ' + sq.book.identifier + ' | ' + e)
         _memoize_xml_toc = time.perf_counter()
         self.xml_time = round(_memoize_xml_toc - _memoize_xml_tic, 3)
@@ -72,7 +72,7 @@ def _memoize_plaintext(self):
             _memoize_plaintext_tic = time.perf_counter()
             try:
                 self._plaintext = self.download(formats=['DjVuTXT'], return_responses=True)[0].text
-            except request.exceptions.ReadTimeoutError as e:
+            except requests.exceptions.ReadTimeoutError as e:
                 logging.error('Timeout for txt for item - ' + sq.book.identifier + ' | ' + e)
             _memoize_plaintext_toc = time.perf_counter()
             self.plaintext_time = round(_memoize_plaintext_toc - _memoize_plaintext_tic, 3)
