@@ -1,10 +1,8 @@
-# Welcome
-
-Welcome to the Open Book Genome Project (OBGP) Sequencer™, an open-source Book Processing Pipeline of responsibly vetted community "[modules](https://github.com/Open-Book-Genome-Project/sequencer/tree/master/bgp/modules)" which classify, sequence, and fingerprint book fulltext to reveal public insights.
+Welcome to the Open Book Genome Project (OBGP) Sequencer™, an open-source Book Processing Pipeline of responsibly vetted community "[modules](https://github.com/Open-Book-Genome-Project/sequencer/tree/master/bgp/modules)" which classify, sequence, and fingerprint book fulltext to reveal public insights about Books.
 
 ## Quickstart
 
-Want to get started immediately? Try the google colab file for BGP:
+Want to get started immediately? Try the OBGP Sequencer™ on google colab:
 https://colab.research.google.com/drive/1o_AEcfFt4-SrC6Xv72lx1ybkjHxhA4kp
 
 ## How it Works
@@ -14,17 +12,9 @@ Each month, the OBGP Sequencer™ gets run against the fulltext of more than 1M 
 - Generating word frequency mappings
 - Guessing grade reading levels
 
-## Contributing a Module
+## Who we are
 
-1. Please [read the whitepaper](https://docs.google.com/document/d/1eybbw_qZ3EE9CJg868BhPuq5z_36Wq2G0Ki3Lkde9v8/edit?ts=5e5edcd1#) and look through our community list of [proposed or requested modules](https://docs.google.com/document/d/1eybbw_qZ3EE9CJg868BhPuq5z_36Wq2G0Ki3Lkde9v8/edit?ts=5e5edcd1#heading=h.dj2jqsxuy8my)
-2. [Propose a "module"](https://github.com/Open-Book-Genome-Project/sequencer/issues/new) by creating a github issue
-3. Get the code: Fork this git repository and clone it to your workspace. Create a new branch for your module (named after its corresponding github issue number and title: e.g. `git checkout -b 12/module/find-isbns`). Install
-4. [Create a new module](https://github.com/Open-Book-Genome-Project/sequencer/new/master) to the `modules/` directory
-5. Test your module locally using [Internet Archive's unrestricted collection of ~800k books](https://docs.google.com/document/d/10cNGGYrDFu0BJg-pUYYzKpjB1TWkqKspTZl2YG-yLJ4/edit?fbclid=IwAR3fx-LPu7D4zU1FbcehX2bIY1fNU_nvbqOiy5QpS0yGv_ILhVr73WHD-BI#heading=h.36kkw3g3gzos)
-5. [open a Pull Request](https://github.com/Open-Book-Genome-Project/sequencer/compare) so your contribution may be reviewed.
-
-## Questions?
-Please [open an issue](https://github.com/Open-Book-Genome-Project/sequencer/issues/new) and [request a slack invite](mailto:hi@mek.fyi)
+OBGP is an independent, community-run, not-for-profit committee of open-source and book enthusiasts who want to responsibly further the effort of making books as useful and accessible as possible.
 
 ## Installation
 
@@ -34,7 +24,8 @@ If you want to run the OBGP Sequencer™ pipeline, run:
 ```
 pip install obgp
 ```
-### Development
+
+### Local Development
 
 ```
 git clone https://github.com/Open-Book-Genome-Project/sequencer.git  # get the code
@@ -42,13 +33,6 @@ virtualenv venv && source venv/bin/activate  # setup a virtual environment
 cd sequencer  # change into project directory
 pip install -e .  # install the library (and re-run in project root as you make changes)
 ```
-
-## Technical Overview
-
-- Book Genome Project extends/overloads @jjjake's `internetarchive` tool (invisibly using bad practices) in bgp/__init__.py with functions to fetch xml / plaintext (in a smart, memoized way)
-- Programmer builds a Sequencer (which is a list) of Sequences (a Sequence essentially does 1-pass on the data). Currently, the only sequences we have are 1gram and 2gram and these could be done in a single pass.
-- Each Sequence specified a list of modules to get run as it steps
-- The result is the top-level Sequencer can print out its `.results` as a dict
 
 ## Usage
 
@@ -73,6 +57,8 @@ Then, you would pass this book identifier into the Sequencer to sequence the boo
 >>> genome.results
 ```
 
+## Saving & Uploading Results
+
 If your `internetarchive` tool is configured against an account with sufficient permissions, you can then upload your genome results back to an Archive.org item (we'll arbitrarily pick the identifier `bgp`) by running:
 
 ```
@@ -91,12 +77,40 @@ If you want to run a default test to make sure everything works, try:
 >>> genome.results
 ```
 
-## Who we are
+## Contributing a Module
 
-OBGP is an independent, community-run, not-for-profit committee of open-source and book enthusiasts who want to responsibly further the effort of making books as useful and accessible as possible.
+1. Please [read the whitepaper](https://docs.google.com/document/d/1eybbw_qZ3EE9CJg868BhPuq5z_36Wq2G0Ki3Lkde9v8/edit?ts=5e5edcd1#) and look through our community list of [proposed or requested modules](https://docs.google.com/document/d/1eybbw_qZ3EE9CJg868BhPuq5z_36Wq2G0Ki3Lkde9v8/edit?ts=5e5edcd1#heading=h.dj2jqsxuy8my)
+2. [Propose a "module"](https://github.com/Open-Book-Genome-Project/sequencer/issues/new) by creating a github issue
+3. Get the code: Fork this git repository and clone it to your workspace. Create a new branch for your module (named after its corresponding github issue number and title: e.g. `git checkout -b 12/module/find-isbns`). Install
+4. [Create a new module](https://github.com/Open-Book-Genome-Project/sequencer/new/master) to the `modules/` directory
+5. Test your module locally using [Internet Archive's unrestricted collection of ~800k books](https://docs.google.com/document/d/10cNGGYrDFu0BJg-pUYYzKpjB1TWkqKspTZl2YG-yLJ4/edit?fbclid=IwAR3fx-LPu7D4zU1FbcehX2bIY1fNU_nvbqOiy5QpS0yGv_ILhVr73WHD-BI#heading=h.36kkw3g3gzos)
+5. [open a Pull Request](https://github.com/Open-Book-Genome-Project/sequencer/compare) so your contribution may be reviewed.
+
+
+## Technical Overview
+
+- Book Genome Project extends/overloads @jjjake's `internetarchive` tool (invisibly using bad practices) in bgp/__init__.py with functions to fetch xml / plaintext (in a smart, memoized way)
+- Programmer builds a Sequencer (which is a list) of Sequences (a Sequence essentially does 1-pass on the data). Currently, the only sequences we have are 1gram and 2gram and these could be done in a single pass.
+- Each Sequence specified a list of modules to get run as it steps
+- The result is the top-level Sequencer can print out its `.results` as a dict
+
+### Sequencers, Processors & Modules
+
+A `Sequencer` tells the Book Genome Project what tasks should be run and what results should be derived when processing a book's genome.
+
+When a OGBP Sequencer is defined, it is loaded with a list of Processors, and these Processors with Modules.
+
+A Processor is an abstraction which is responsible for fetching a specific representation of a Book (e.g. plaintext, xml, abbyy), splitting it into predefined logical units (e.g. characters, words, sentences, paragraphs, pages, chapters, entire text), stepping over each of these logical units, and sending them to it's registered Modules. 
+
+One example hypothetrical Processor might be called `XMLSentenceProcessor`. This Processor may be responsible for fetching (i.e. downloading) a Book in XML format with word-level markup. The `run()` method of the Processor's interface might parse and split the structured XML data into sentences, iterate through each sentence, and forward them to each of its registered Modules for processing. This hypothetical `SentenceProcessor` might be loaded with several Modules, such as a `TotalSentenceCountModule` and an `SentenceWordCountStatsModule` which, respectively, keeps track of the total number of sentences within the book and calculates the average number of words per sentence, etc.
+
+In many cases a developer may find that the package's out-of-the-box `bgp.DEFAULT_SEQUENCER` is a great place to start, either as a Sequencer to run or a good example for extending.
 
 ## Public Testing Data sets
 
 Here's a corpus of ~800k Archive.org item identifiers of public domain books (of varying quality/appearance/language) which may be used for testing your module:
 
 https://archive.org/download/869k-public-domain-book-urls-dataset/2017-12-26_public-domain-books-dataset_800k-identifiers.csv (~19mb)
+
+## Questions?
+Please [open an issue](https://github.com/Open-Book-Genome-Project/sequencer/issues/new) and [request a slack invite](mailto:hi@mek.fyi)
