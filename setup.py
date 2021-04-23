@@ -3,12 +3,12 @@ OBGP: Open Book Genome Project
 """
 
 import codecs
-import os
+from os.path import dirname, isdir, join, abspath
 import re
-
+from subprocess import CalledProcessError, check_output
 import setuptools
 
-here = os.path.abspath(os.path.dirname(__file__))
+here = abspath(dirname(__file__))
 
 
 def read(*parts):
@@ -16,27 +16,51 @@ def read(*parts):
     intentionally *not* adding an encoding option to open, See:
     https://github.com/pypa/virtualenv/issues/201#issuecomment-3145690
     """
-    return codecs.open(os.path.join(here, *parts), 'r').read()
+    return codecs.open(join(here, *parts), 'r').read()
 
+def get_version():
+    # Source: https://github.com/Changaco/version.py
+    PREFIX = ''
+    tag_re = re.compile(r'\btag: %s([0-9][^,]*)\b' % PREFIX)
+    version_re = re.compile('^Version: (.+)$', re.M)
 
-def find_version(*file_paths):
-    version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
+    # Return the version if it has been injected into the file by git-archive
+    version = tag_re.search('$Format:%D$')
+    if version:
+        return version.group(1)
+
+    d = dirname(__file__)
+
+    if isdir(join(d, '.git')):
+        # Get the version using "git describe".
+        cmd = 'git describe --tags --match %s[0-9]* --dirty --always' % PREFIX
+        try:
+            version = check_output(cmd.split()).decode().strip()[len(PREFIX):]
+        except CalledProcessError:
+            raise RuntimeError('Unable to get version number from git tags')
+
+        # PEP 440 compatibility
+        if '-' in version:
+            if version.endswith('-dirty'):
+                raise RuntimeError('The working tree is dirty')
+            version = '.post'.join(version.split('-')[:2])
+
+    else:
+        # Extract the version from the PKG-INFO file.
+        with open(join(d, 'PKG-INFO')) as f:
+            version = version_re.search(f.read()).group(1)
+
+    return version
 
 def requirements():
     """Returns requirements.txt as a list usable by setuptools"""
-    import os
-    reqtxt = os.path.join(here, 'requirements.txt')
+    reqtxt = join(here, 'requirements.txt')
     with open(reqtxt) as f:
         return f.read().split()
                             
 setuptools.setup(
     name='obgp',
-    version=find_version("bgp", "__init__.py"),
+    version=get_version(),
     description="Open Book Genome Project",
     long_description=read('README.md'),
     long_description_content_type="text/markdown",
