@@ -2,8 +2,9 @@ Welcome to the Open Book Genome Project (OBGP) Sequencer™, an open-source Book
 
 ## Quickstart
 
-Want to get started immediately? Try the OBGP Sequencer™ on google colab:
-https://colab.research.google.com/drive/1o_AEcfFt4-SrC6Xv72lx1ybkjHxhA4kp
+Want to get started immediately?
+
+Try the [OBGP Sequencer™ Google Colab Notebook](https://colab.research.google.com/drive/1q3eBgrMeq1mfObzwYyS3VTIwGr5W7wtL?authuser=1):
 
 ## How it Works
 
