@@ -184,9 +184,9 @@ DEFAULT_SEQUENCER = Sequencer({
         'term_freq': WordFreqModule(),
         'urls': UrlExtractorModule()
     }, n=1, stop_words=None),
-    'fulltext': FulltextProcessor(modules={
-        'readinglevel': ReadingLevelModule()
-    }),
+    #'fulltext': FulltextProcessor(modules={
+    #    'readinglevel': ReadingLevelModule()
+    #}),
     'pagetypes': PageTypeProcessor(modules={
         'copyright_page': CopyrightPageDetectorModule()
     })
