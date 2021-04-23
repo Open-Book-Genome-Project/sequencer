@@ -358,7 +358,6 @@ class CopyrightPageDetectorModule(KeywordPageDetectorModule):
 
         return {
             'isbns': isbns,
-            #'page':  " ".join(word.text for word in page.iter('WORD'))
         }
 
     def __init__(self):
