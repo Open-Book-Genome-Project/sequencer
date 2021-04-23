@@ -3,3 +3,5 @@
 settings.cfg
 dist/
 obgp.egg-info/
+bgp_results*
+obgp_errors.log
