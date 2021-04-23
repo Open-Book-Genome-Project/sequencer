@@ -72,7 +72,7 @@ def _memoize_plaintext(self):
             self.plaintext_time = round(_memoize_plaintext_toc - _memoize_plaintext_tic, 3)
             self.plaintext_mem_kb = sys.getsizeof(self._plaintext)
         return self._plaintext
-    
+
 def get_book_items(query, rows=100, page=1, scope_all=False):
     """
     :param str query: an search query for selecting/faceting books
@@ -126,14 +126,16 @@ class Sequencer:
         def results(self):
             data = {p: self.pipeline[p].results for p in self.pipeline}
             data['total_time'] = self.total_time
-            data['_memoize_xml'] = {
-                'time': self.book.xml_time,
-                'kb': self.book.xml_mem_kb
-            }
-            data['_memoize_plaintext'] = {
-                'time': self.book.plaintext_time,
-                'kb': self.book.plaintext_mem_kb
-            }
+            if hasattr(self.book, 'xml_time'):
+                data['_memoize_xml'] = {
+                    'time': self.book.xml_time,
+                    'kb': self.book.xml_mem_kb
+                }
+            if hasattr(self.book, 'plaintext_time'):
+                data['_memoize_plaintext'] = {
+                    'time': self.book.plaintext_time,
+                    'kb': self.book.plaintext_mem_kb
+                }
             data['version'] = get_software_version()
             return data
 
