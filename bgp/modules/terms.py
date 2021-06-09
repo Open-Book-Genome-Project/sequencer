@@ -283,10 +283,13 @@ class PageTypeProcessor:
         processor_tic = time.perf_counter()
         utf8_parser = etree.XMLParser(encoding='utf-8')
         node = etree.fromstring(book.xml.encode('utf-8'), parser=utf8_parser)
+        last_page = int(node.xpath("count(//OBJECT)"))
         for m in self.modules:
             module_tic = time.perf_counter()
             for page in node.iter('OBJECT'):
-                self.modules[m].run(page)
+                self.modules[m].run(page, last_page)
+                #Is passing last_page the right way to do this? Seems wrong... Look to KeywordPageDetectorModule.run()
+                #print("Page " + str(int(page.get("usemap")[-9:-5])) + " of " + str(int(node.xpath("count(//OBJECT)"))))
             module_toc = time.perf_counter()
             self.modules[m].time = round(module_toc - module_tic, 3)
         processor_toc = time.perf_counter()
@@ -306,7 +309,7 @@ class KeywordPageDetectorModule:
         self.matched_pages = []
         self.match_limit = match_limit
 
-    def run(self, page):
+    def run(self, page, last_page):
         if not self.match_limit or len(self.matched_pages) < self.match_limit:
             for word in page.iter('WORD'):
                 if word.text.lower() in self.keywords:
@@ -362,3 +365,44 @@ class CopyrightPageDetectorModule(KeywordPageDetectorModule):
 
     def __init__(self):
         super().__init__(['copyright', '©'], extractor=self.extractor, match_limit=1)
+
+
+class BackpageIsbnExtractorModule():
+
+    def __init__(self):
+        self.isbns = []
+
+    def run(self, page, last_page):
+        param = page[0].attrib['value'].split('.')[0]
+        current_page = int(param[-4:])
+        if current_page == last_page:
+            in_isbn = False
+            self.isbns = []
+            candidate_isbn = ""
+            mistakes = {"I": "1", "O": "0", "l": "1"}
+            for word in page.iter('WORD'):
+                word = rmpunk(word.text)
+                if in_isbn:
+                    if word in mistakes:
+                        candidate_isbn += mistakes[word]
+                    elif word[0:9].isdigit():
+                        candidate_isbn += word
+                    else:
+                        isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
+                        if isbn:
+                            self.isbns.append(isbn)
+                        in_isbn = False
+                        candidate_isbn = ""
+                if 'sbn' in word.lower():
+                    in_isbn = True
+            else:
+                isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
+                if isbn:
+                    self.isbns.append(isbn)
+
+    @property
+    def results(self):
+        return {
+            "results": self.isbns,
+            "time": self.time
+        }

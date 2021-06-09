@@ -31,7 +31,8 @@ from bgp.modules.terms import (
     UrlExtractorModule,
     WordFreqModule,
     CopyrightPageDetectorModule,
-    PageTypeProcessor
+    PageTypeProcessor,
+    BackpageIsbnExtractorModule
 )
 from bgp.utils import STOP_WORDS
 from subprocess import PIPE, Popen, STDOUT
@@ -188,6 +189,7 @@ DEFAULT_SEQUENCER = Sequencer({
         'readinglevel': ReadingLevelModule()
     }),
     'pagetypes': PageTypeProcessor(modules={
-        'copyright_page': CopyrightPageDetectorModule()
+        'copyright_page': CopyrightPageDetectorModule(),
+        'backpage_isbn': BackpageIsbnExtractorModule()
     })
 })
