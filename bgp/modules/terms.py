@@ -283,13 +283,10 @@ class PageTypeProcessor:
         processor_tic = time.perf_counter()
         utf8_parser = etree.XMLParser(encoding='utf-8')
         node = etree.fromstring(book.xml.encode('utf-8'), parser=utf8_parser)
-        last_page = int(node.xpath("count(//OBJECT)"))
         for m in self.modules:
             module_tic = time.perf_counter()
             for page in node.iter('OBJECT'):
-                self.modules[m].run(page, last_page)
-                #Is passing last_page the right way to do this? Seems wrong... Look to KeywordPageDetectorModule.run()
-                #print("Page " + str(int(page.get("usemap")[-9:-5])) + " of " + str(int(node.xpath("count(//OBJECT)"))))
+                self.modules[m].run(page, node)
             module_toc = time.perf_counter()
             self.modules[m].time = round(module_toc - module_tic, 3)
         processor_toc = time.perf_counter()
@@ -309,7 +306,7 @@ class KeywordPageDetectorModule:
         self.matched_pages = []
         self.match_limit = match_limit
 
-    def run(self, page, last_page):
+    def run(self, page, node):
         if not self.match_limit or len(self.matched_pages) < self.match_limit:
             for word in page.iter('WORD'):
                 if word.text.lower() in self.keywords:
@@ -372,10 +369,11 @@ class BackpageIsbnExtractorModule():
     def __init__(self):
         self.isbns = []
 
-    def run(self, page, last_page):
-        param = page[0].attrib['value'].split('.')[0]
-        current_page = int(param[-4:])
-        if current_page == last_page:
+    def run(self, page, node):
+        current_page = int(page[0].attrib['value'].split('.')[0][-4:])
+        if not hasattr(self, 'last_page'):
+            self.last_page = int(node.xpath("//OBJECT")[-1][0].attrib['value'].split('.')[0][-4:])
+        if current_page == self.last_page:
             in_isbn = False
             self.isbns = []
             candidate_isbn = ""
