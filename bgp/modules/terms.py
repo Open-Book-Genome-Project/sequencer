@@ -184,6 +184,14 @@ def rmpunk(word, punctuation=PUNCTUATION):
         if c not in punctuation
     )
 
+def replace_mistakes(word):
+                        return (
+                            word.replace('I', '1')
+                            .replace('O', '0')
+                            .replace('l', '1')
+                            .replace('D', '0')
+                            .replace('A', '8')
+                        )
 
 class WordFreqModule:
 
@@ -377,13 +385,11 @@ class BackpageIsbnExtractorModule():
             in_isbn = False
             self.isbns = []
             candidate_isbn = ""
-            mistakes = {"I": "1", "O": "0", "l": "1"}
             for word in page.iter('WORD'):
                 word = rmpunk(word.text)
                 if in_isbn:
-                    if word in mistakes:
-                        candidate_isbn += mistakes[word]
-                    elif word[0:9].isdigit():
+                    word = replace_mistakes(word)
+                    if word[0:9].isdigit():
                         candidate_isbn += word
                     else:
                         isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
