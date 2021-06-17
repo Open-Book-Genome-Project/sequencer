@@ -103,6 +103,15 @@ ia.Item.xml = property(_memoize_xml)
 ia.Item.plaintext = property(_memoize_plaintext)
 
 
+class DeriveItem:
+
+    def __init__(self, xml, plaintext):
+        self.xml = xml
+        self.plaintext = plaintext
+        self.exists = True
+        self.metadata = {'isbn': 'None'}
+
+
 class Sequencer:
 
     class Sequence:
@@ -159,7 +168,7 @@ class Sequencer:
         try:
             sequence_tic = time.perf_counter()
             sq = self.Sequence(copy.deepcopy(self.pipeline))
-            sq.book = book if type(book) is ia.Item else ia.get_item(book)
+            sq.book = book if type(book) is ia.Item or DeriveItem else ia.get_item(book)
             if sq.book.exists:
                 for p in sq.pipeline:
                     sq.pipeline[p].run(sq.book)
