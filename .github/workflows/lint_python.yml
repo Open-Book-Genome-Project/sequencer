@@ -6,6 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
+      - run: sudo apt-get update
       - run: sudo apt-get install libxml2-dev libxslt-dev
       - run: pip install black codespell flake8 isort pytest pyupgrade wheel
       - run: black --check . || true
@@ -14,4 +15,3 @@ jobs:
       - run: isort --profile black .
       - run: pip install -r requirements.txt
       - run: pytest .
-      - run: shopt -s globstar && pyupgrade --py36-plus **/*.py
