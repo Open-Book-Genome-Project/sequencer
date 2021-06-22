@@ -1,6 +1,7 @@
 import re
 from collections import defaultdict
 
+import isbnlib
 import requests
 import time
 from lxml import etree
@@ -261,18 +262,10 @@ class IsbnExtractorModule(ExtractorModule):
         match13 = re.search(r'^(\d{12})(\d)', isbn)
 
         if match10:
-            digits = match10.group(1)
-            check_digit = 10 if match10.group(2) == 'X' else int(match10.group(2))
-            result = sum((i + 1) * int(digit) for i, digit in enumerate(digits))
-            if (result % 11) == check_digit:
+            if isbnlib.is_isbn10(match10.group()):
                 return match10.group()
             elif match13:
-                digits = match13.group()
-                if len(digits) != 13:
-                    return False
-                product = (sum(int(ch) for ch in digits[::2])
-                           + sum(int(ch) * 3 for ch in digits[1::2]))
-                if product % 10 == 0:
+                if isbnlib.is_isbn13(match13.group()):
                     return match13.group()
             else:
                 return False
