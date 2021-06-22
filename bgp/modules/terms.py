@@ -277,6 +277,31 @@ class IsbnExtractorModule(ExtractorModule):
             else:
                 return False
 
+    @staticmethod
+    def extract_isbn(page):
+        in_isbn = False
+        isbns = []
+        candidate_isbn = ""
+        for word in page.iter('WORD'):
+            word = rmpunk(word.text)
+            if in_isbn:
+                word = replace_mistakes(word)
+                if word[0:9].isdigit():
+                    candidate_isbn += word
+                else:
+                    isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
+                    if isbn:
+                        isbns.append(isbn)
+                    in_isbn = False
+                    candidate_isbn = ""
+            if 'sbn' in word.lower():
+                in_isbn = True
+        else:
+            isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
+            if isbn:
+                isbns.append(isbn)
+        return isbns
+
     def __init__(self):
         super().__init__(self.validate_isbn)
 
@@ -340,29 +365,7 @@ class KeywordPageDetectorModule:
 class CopyrightPageDetectorModule(KeywordPageDetectorModule):
 
     def extractor(self, page):
-        in_isbn = False
-        isbns = []
-        candidate_isbn = ""
-        mistakes = {"I": "1", "O": "0", "l": "1"}
-        for word in page.iter('WORD'):
-            word = rmpunk(word.text)
-            if in_isbn:
-                if word in mistakes:
-                    candidate_isbn += mistakes[word]
-                elif word[0:9].isdigit():
-                    candidate_isbn += word
-                else:
-                    isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
-                    if isbn:
-                        isbns.append(isbn)
-                    in_isbn = False
-                    candidate_isbn = ""
-            if 'sbn' in word.lower():
-                in_isbn = True
-        else:
-            isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
-            if isbn:
-                isbns.append(isbn)
+        isbns = IsbnExtractorModule.extract_isbn(page)
 
         return {
             'isbns': isbns,
@@ -382,27 +385,7 @@ class BackpageIsbnExtractorModule():
         if not hasattr(self, 'last_page'):
             self.last_page = int(node.xpath("//OBJECT")[-1][0].attrib['value'].split('.')[0][-4:])
         if current_page == self.last_page:
-            in_isbn = False
-            self.isbns = []
-            candidate_isbn = ""
-            for word in page.iter('WORD'):
-                word = rmpunk(word.text)
-                if in_isbn:
-                    word = replace_mistakes(word)
-                    if word[0:9].isdigit():
-                        candidate_isbn += word
-                    else:
-                        isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
-                        if isbn:
-                            self.isbns.append(isbn)
-                        in_isbn = False
-                        candidate_isbn = ""
-                if 'sbn' in word.lower():
-                    in_isbn = True
-            else:
-                isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
-                if isbn:
-                    self.isbns.append(isbn)
+            self.isbns = IsbnExtractorModule.extract_isbn(page)
 
     @property
     def results(self):
