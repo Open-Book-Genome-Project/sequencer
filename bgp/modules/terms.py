@@ -183,7 +183,7 @@ def rmpunk(word, punctuation=PUNCTUATION):
     return ''.join(
         c.encode("ascii", "ignore").decode() for c in (word)
         if c not in punctuation
-    )
+    ).replace(' ', '')
 
 def replace_mistakes(word):
                         return (
@@ -192,6 +192,9 @@ def replace_mistakes(word):
                             .replace('l', '1')
                             .replace('D', '0')
                             .replace('A', '8')
+                            .replace('/', 'X')
+                            .replace('\\', 'X')
+                            .replace('S', '5')
                         )
 
 class WordFreqModule:
@@ -272,27 +275,15 @@ class IsbnExtractorModule(ExtractorModule):
 
     @staticmethod
     def extract_isbn(page):
-        in_isbn = False
         isbns = []
-        candidate_isbn = ""
-        for word in page.iter('WORD'):
-            word = rmpunk(word.text)
-            if in_isbn:
-                word = replace_mistakes(word)
-                if word[0:9].isdigit():
-                    candidate_isbn += word
-                else:
-                    isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
-                    if isbn:
-                        isbns.append(isbn)
-                    in_isbn = False
-                    candidate_isbn = ""
-            if 'sbn' in word.lower():
-                in_isbn = True
-        else:
-            isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
-            if isbn:
-                isbns.append(isbn)
+        for line in page.iter('LINE'):
+            line_text = ' '.join(word.text for word in line.iter('WORD'))
+            line_text_clean = replace_mistakes(line_text)
+            isbnlike_list = isbnlib.get_isbnlike(line_text_clean, level='loose')
+            for candidate_isbn in isbnlike_list:
+                isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
+                if isbn:
+                    isbns.append(isbn)
         return isbns
 
     def __init__(self):
