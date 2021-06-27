@@ -183,7 +183,7 @@ def rmpunk(word, punctuation=PUNCTUATION):
     return ''.join(
         c.encode("ascii", "ignore").decode() for c in (word)
         if c not in punctuation
-    ).replace(' ', '')
+    )
 
 def replace_mistakes(word):
                         return (
@@ -258,7 +258,7 @@ class IsbnExtractorModule(ExtractorModule):
 
     @staticmethod
     def validate_isbn(isbn):
-        isbn = rmpunk(isbn)
+        isbn = rmpunk(isbn).replace(' ', '')
         if len(isbn) == 9:
             isbn = '0' + isbn
         match10 = re.search(r'^(\d{9})(\d|X)', isbn)
