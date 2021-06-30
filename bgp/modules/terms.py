@@ -1,6 +1,7 @@
 import re
 from collections import defaultdict
 
+import isbnlib
 import requests
 import time
 from lxml import etree
@@ -184,6 +185,11 @@ def rmpunk(word, punctuation=PUNCTUATION):
         if c not in punctuation
     )
 
+def replace_mistakes(word):
+    substitutions = [('I', '1'), ('O', '0'), ('l', '1'), ('D', '0'), ('A', '8'), ('/', 'X'), ('\\', 'X'), ('S', '5')]
+    for sub in substitutions:
+        word = word.replace(*sub)
+    return word
 
 class WordFreqModule:
 
@@ -246,28 +252,33 @@ class IsbnExtractorModule(ExtractorModule):
 
     @staticmethod
     def validate_isbn(isbn):
-        isbn = rmpunk(isbn)
+        isbn = rmpunk(isbn).replace(' ', '')
         if len(isbn) == 9:
             isbn = '0' + isbn
         match10 = re.search(r'^(\d{9})(\d|X)', isbn)
         match13 = re.search(r'^(\d{12})(\d)', isbn)
 
         if match10:
-            digits = match10.group(1)
-            check_digit = 10 if match10.group(2) == 'X' else int(match10.group(2))
-            result = sum((i + 1) * int(digit) for i, digit in enumerate(digits))
-            if (result % 11) == check_digit:
+            if isbnlib.is_isbn10(match10.group()):
                 return match10.group()
             elif match13:
-                digits = match13.group()
-                if len(digits) != 13:
-                    return False
-                product = (sum(int(ch) for ch in digits[::2])
-                           + sum(int(ch) * 3 for ch in digits[1::2]))
-                if product % 10 == 0:
+                if isbnlib.is_isbn13(match13.group()):
                     return match13.group()
             else:
                 return False
+
+    @staticmethod
+    def extract_isbn(page):
+        isbns = []
+        for line in page.iter('LINE'):
+            line_text = ' '.join(word.text for word in line.iter('WORD'))
+            line_text_clean = replace_mistakes(line_text)
+            isbnlike_list = isbnlib.get_isbnlike(line_text_clean, level='loose')
+            for candidate_isbn in isbnlike_list:
+                isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
+                if isbn:
+                    isbns.append(isbn)
+        return isbns
 
     def __init__(self):
         super().__init__(self.validate_isbn)
@@ -286,7 +297,7 @@ class PageTypeProcessor:
         for m in self.modules:
             module_tic = time.perf_counter()
             for page in node.iter('OBJECT'):
-                self.modules[m].run(page)
+                self.modules[m].run(page, node)
             module_toc = time.perf_counter()
             self.modules[m].time = round(module_toc - module_tic, 3)
         processor_toc = time.perf_counter()
@@ -306,7 +317,7 @@ class KeywordPageDetectorModule:
         self.matched_pages = []
         self.match_limit = match_limit
 
-    def run(self, page):
+    def run(self, page, node):
         if not self.match_limit or len(self.matched_pages) < self.match_limit:
             for word in page.iter('WORD'):
                 if word.text.lower() in self.keywords:
@@ -332,29 +343,7 @@ class KeywordPageDetectorModule:
 class CopyrightPageDetectorModule(KeywordPageDetectorModule):
 
     def extractor(self, page):
-        in_isbn = False
-        isbns = []
-        candidate_isbn = ""
-        mistakes = {"I": "1", "O": "0", "l": "1"}
-        for word in page.iter('WORD'):
-            word = rmpunk(word.text)
-            if in_isbn:
-                if word in mistakes:
-                    candidate_isbn += mistakes[word]
-                elif word[0:9].isdigit():
-                    candidate_isbn += word
-                else:
-                    isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
-                    if isbn:
-                        isbns.append(isbn)
-                    in_isbn = False
-                    candidate_isbn = ""
-            if 'sbn' in word.lower():
-                in_isbn = True
-        else:
-            isbn = IsbnExtractorModule.validate_isbn(candidate_isbn)
-            if isbn:
-                isbns.append(isbn)
+        isbns = IsbnExtractorModule.extract_isbn(page)
 
         return {
             'isbns': isbns,
@@ -362,3 +351,23 @@ class CopyrightPageDetectorModule(KeywordPageDetectorModule):
 
     def __init__(self):
         super().__init__(['copyright', '©'], extractor=self.extractor, match_limit=1)
+
+
+class BackpageIsbnExtractorModule():
+
+    def __init__(self):
+        self.isbns = []
+
+    def run(self, page, node):
+        current_page = int(page[0].attrib['value'].split('.')[0][-4:])
+        if not hasattr(self, 'last_page'):
+            self.last_page = int(node.xpath("//OBJECT")[-1][0].attrib['value'].split('.')[0][-4:])
+        if current_page == self.last_page:
+            self.isbns = IsbnExtractorModule.extract_isbn(page)
+
+    @property
+    def results(self):
+        return {
+            "results": self.isbns,
+            "time": self.time
+        }

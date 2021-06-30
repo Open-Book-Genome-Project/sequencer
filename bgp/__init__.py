@@ -31,7 +31,8 @@ from bgp.modules.terms import (
     UrlExtractorModule,
     WordFreqModule,
     CopyrightPageDetectorModule,
-    PageTypeProcessor
+    PageTypeProcessor,
+    BackpageIsbnExtractorModule
 )
 from bgp.utils import STOP_WORDS
 from subprocess import PIPE, Popen, STDOUT
@@ -178,7 +179,7 @@ class Sequencer:
             logging.error(sq.book.identifier + ' - does not have DjvuXML and/or DjvuTXT to be sequenced!')
         except requests.exceptions.HTTPError:
             raise Exception(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
-            logging.error(sq.book.identifier +  - 'DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
+            logging.error(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
 
 DEFAULT_SEQUENCER = Sequencer({
     '2grams': NGramProcessor(modules={
@@ -192,6 +193,7 @@ DEFAULT_SEQUENCER = Sequencer({
         'readinglevel': ReadingLevelModule()
     }),
     'pagetypes': PageTypeProcessor(modules={
-        'copyright_page': CopyrightPageDetectorModule()
+        'copyright_page': CopyrightPageDetectorModule(),
+        'backpage_isbn': BackpageIsbnExtractorModule()
     })
 })
