@@ -179,7 +179,7 @@ class Sequencer:
             logging.error(sq.book.identifier + ' - does not have DjvuXML and/or DjvuTXT to be sequenced!')
         except requests.exceptions.HTTPError:
             raise Exception(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
-            logging.error(sq.book.identifier +  - 'DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
+            logging.error(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
 
 DEFAULT_SEQUENCER = Sequencer({
     '2grams': NGramProcessor(modules={
