@@ -186,16 +186,10 @@ def rmpunk(word, punctuation=PUNCTUATION):
     )
 
 def replace_mistakes(word):
-                        return (
-                            word.replace('I', '1')
-                            .replace('O', '0')
-                            .replace('l', '1')
-                            .replace('D', '0')
-                            .replace('A', '8')
-                            .replace('/', 'X')
-                            .replace('\\', 'X')
-                            .replace('S', '5')
-                        )
+    substitutions = [('I', '1'), ('O', '0'), ('l', '1'), ('D', '0'), ('A', '8'), ('/', 'X'), ('\\', 'X'), ('S', '5')]
+    for sub in substitutions:
+        word = word.replace(*sub)
+    return word
 
 class WordFreqModule:
 
