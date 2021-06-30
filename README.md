@@ -107,6 +107,102 @@ One example hypothetrical Processor might be called `XMLSentenceProcessor`. This
 
 In many cases a developer may find that the package's out-of-the-box `bgp.DEFAULT_SEQUENCER` is a great place to start, either as a Sequencer to run or a good example for extending.
 
+### Genome Schema
+This is the reference schema used in genome json files:
+```json
+{
+  "version": "(commit)",
+  "timestamp": "r(Unix Epoch)",
+  "total_time": "r(sequence process seconds)",
+  "_memoize_plaintext": {
+    "time": "r(txt download seconds)",
+    "kb": "r(txt bytes)"
+  },
+  "_memoize_xml": {
+    "time": "r(xml download seconds)",
+    "kb": "r(xml bytes)"
+  },
+  "1grams": {
+    "tokenization_time": "r(1gram tokenization process seconds)",
+    "total_tokens": "r(1gram count)",
+    "total_time": "r(1gram processor process seconds)",
+    "modules": {
+      "urls": {
+        "time": "r(url process seconds)",
+        "results": [
+          "(url)"
+        ]
+      },
+      "term_freq": {
+        "time": "r(1gram frequency process seconds)",
+        "results": [
+          [
+            "(1gram)",
+            "r(1gram frequency)"
+          ]
+        ]
+      }
+    }
+  },
+  "2grams": {
+    "tokenization_time": "r(2gram tokenization process seconds)",
+    "total_tokens": "r(2gram count)",
+    "total_time": "r(2gram processor process seconds)",
+    "modules": {
+      "term_freq": {
+        "time": "r(2gram frequency process seconds)",
+        "results": [
+          [
+            "(2gram)",
+            "r(2gram frequency)"
+          ]
+        ]
+      }
+    }
+  },
+  "fulltext": {
+    "total_time": "r(fulltext processor process seconds)",
+    "modules": {
+      "readinglevel": {
+        "time": "r(reading level process seconds)",
+        "results": {
+          "readability": {
+            "flesch_kincaid_score": "r(flesch kincaid score)",
+            "smog_score": "r(smog score)"
+          },
+          "lexile": {
+            "min_age": "(Lower age in range)",
+            "max_age": "(Upper age in range)"
+          }
+        }
+      }
+    }
+  },
+  "pagetypes": {
+    "total_time": "r(pagetype processor process seconds)",
+    "modules": {
+      "copyright_page": {
+        "time": "r(copyright page process seconds)",
+        "results": [
+          {
+            "page": "(copyright page)",
+            "isbns": [
+              "(isbn)"
+            ]
+          }
+        ]
+      },
+      "backpage_isbn": {
+        "results": [
+          "(isbn)"
+        ],
+        "time": "r(copyright page process seconds)"
+      }
+    }
+  }
+}
+```
+
 ## Public Testing Data sets
 
 Here's a corpus of ~800k Archive.org item identifiers of public domain books (of varying quality/appearance/language) which may be used for testing your module:

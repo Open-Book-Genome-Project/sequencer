@@ -60,25 +60,25 @@ def _memoize_xml(self):
         try:
             self._xml = self.download(formats=['Djvu XML'], return_responses=True)[0].text
         except requests.exceptions.Timeout as e:
-            logging.error('Timeout for xml for item - ' + self.identifier + ' | ' + e)
+            logging.error('Timeout getting xml for item - ' + self.identifier + ' | ' + str(e))
+            raise Exception('Timeout getting xml for item - ' + self.identifier)
         _memoize_xml_toc = time.perf_counter()
         self.xml_time = round(_memoize_xml_toc - _memoize_xml_tic, 3)
         self.xml_mem_kb = sys.getsizeof(self._xml)
     return self._xml
 
 def _memoize_plaintext(self):
-    """If converts xml to plaintext (only when needed) and memoizes result"""
-    if hasattr(self, 'xml'):
-        if not hasattr(self, '_plaintext'):
-            _memoize_plaintext_tic = time.perf_counter()
-            try:
-                self._plaintext = self.download(formats=['DjVuTXT'], return_responses=True)[0].text
-            except requests.exceptions.Timeout as e:
-                logging.error('Timeout for txt for item - ' + self.identifier + ' | ' + e)
-            _memoize_plaintext_toc = time.perf_counter()
-            self.plaintext_time = round(_memoize_plaintext_toc - _memoize_plaintext_tic, 3)
-            self.plaintext_mem_kb = sys.getsizeof(self._plaintext)
-        return self._plaintext
+    if not hasattr(self, '_plaintext'):
+        _memoize_plaintext_tic = time.perf_counter()
+        try:
+            self._plaintext = self.download(formats=['DjVuTXT'], return_responses=True)[0].text
+        except requests.exceptions.Timeout as e:
+            logging.error('Timeout getting txt for item - ' + self.identifier + ' | ' + str(e))
+            raise Exception('Timeout getting txt for item - ' + self.identifier)
+        _memoize_plaintext_toc = time.perf_counter()
+        self.plaintext_time = round(_memoize_plaintext_toc - _memoize_plaintext_tic, 3)
+        self.plaintext_mem_kb = sys.getsizeof(self._plaintext)
+    return self._plaintext
 
 def get_book_items(query, rows=100, page=1, scope_all=False):
     """
@@ -160,7 +160,11 @@ class Sequencer:
         try:
             sequence_tic = time.perf_counter()
             sq = self.Sequence(copy.deepcopy(self.pipeline))
-            sq.book = book if type(book) is ia.Item else ia.get_item(book)
+            try:
+                sq.book = book if type(book) is ia.Item else ia.get_item(book)
+            except requests.exceptions.ConnectionError:
+                raise Exception('Connection error retrieving metadata for - ' + book)
+                logging.error('Connection error retrieving metadata for - ' + book)
             if sq.book.exists:
                 for p in sq.pipeline:
                     sq.pipeline[p].run(sq.book)
@@ -168,14 +172,14 @@ class Sequencer:
                 sq.total_time = round(sequence_toc - sequence_tic, 3)
                 return sq
             else:
-                print(sq.book.identifier + ' - Item cannot be found.')
+                raise Exception(sq.book.identifier + ' - Item cannot be found.')
                 logging.error(sq.book.identifier + ' - Item cannot be found.')
         except IndexError:
-            print(sq.book.identifier + ' - does not have DjvuXML and/or DjvuTXT to be sequenced!')
+            raise Exception(sq.book.identifier + ' - does not have DjvuXML and/or DjvuTXT to be sequenced!')
             logging.error(sq.book.identifier + ' - does not have DjvuXML and/or DjvuTXT to be sequenced!')
         except requests.exceptions.HTTPError:
-            print(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
-            logging.error(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
+            raise Exception(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
+            logging.error(sq.book.identifier +  - 'DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
 
 DEFAULT_SEQUENCER = Sequencer({
     '2grams': NGramProcessor(modules={
