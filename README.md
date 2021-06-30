@@ -192,16 +192,19 @@ In many cases a developer may find that the package's out-of-the-box `bgp.DEFAUL
 This is the reference schema used in genome json files:
 ```json
 {
+  "identifier": "(ia identifier)",
   "version": "(commit)",
   "timestamp": "r(Unix Epoch)",
-  "total_time": "r(sequence process seconds)",
-  "_memoize_plaintext": {
-    "time": "r(txt download seconds)",
-    "kb": "r(txt bytes)"
-  },
-  "_memoize_xml": {
-    "time": "r(xml download seconds)",
-    "kb": "r(xml bytes)"
+  "sequence_time": "r(sequence process seconds)",
+  "source": {
+    "txt": {
+      "time": "r(txt download seconds)",
+      "bytes": "r(txt bytes)"
+    },
+    "xml": {
+      "time": "r(xml download seconds)",
+      "bytes": "r(xml bytes)"
+    }
   },
   "1grams": {
     "tokenization_time": "r(1gram tokenization process seconds)",
@@ -277,7 +280,7 @@ This is the reference schema used in genome json files:
         "results": [
           "(isbn)"
         ],
-        "time": "r(copyright page process seconds)"
+        "time": "r(copyright page process seconds)",
       }
     }
   }

@@ -64,7 +64,7 @@ def _memoize_xml(self):
             raise Exception('Timeout getting xml for item - ' + self.identifier)
         _memoize_xml_toc = time.perf_counter()
         self.xml_time = round(_memoize_xml_toc - _memoize_xml_tic, 3)
-        self.xml_mem_kb = sys.getsizeof(self._xml)
+        self.xml_bytes = sys.getsizeof(self._xml)
     return self._xml
 
 def _memoize_plaintext(self):
@@ -109,7 +109,7 @@ class Sequencer:
     class Sequence:
         def __init__(self, pipeline):
             self.pipeline = pipeline
-            self.total_time = 0
+            self.sequence_time = 0
 
         def save(self, path=''):
             item_path = path + self.book.identifier + '/'
@@ -126,17 +126,17 @@ class Sequencer:
         @property
         def results(self):
             data = {p: self.pipeline[p].results for p in self.pipeline}
-            data['total_time'] = self.total_time
-            if hasattr(self.book, 'xml_time'):
-                data['_memoize_xml'] = {
+            data['sequence_time'] = self.sequence_time
+            data['source'] = {
+                'xml': {
                     'time': self.book.xml_time,
-                    'kb': self.book.xml_mem_kb
-                }
-            if hasattr(self.book, 'plaintext_time'):
-                data['_memoize_plaintext'] = {
+                    'bytes': self.book.xml_bytes
+                },
+                'txt': {
                     'time': self.book.plaintext_time,
-                    'kb': self.book.plaintext_mem_kb
+                    'kb': self.book.plaintext_bytes
                 }
+            }
             data['version'] = get_software_version()
             data['timestamp'] = time.time()
             data['identifier'] = self.book.identifier
@@ -164,7 +164,7 @@ class Sequencer:
                 for p in sq.pipeline:
                     sq.pipeline[p].run(sq.book)
                 sequence_toc = time.perf_counter()
-                sq.total_time = round(sequence_toc - sequence_tic, 3)
+                sq.sequence_time = round(sequence_toc - sequence_tic, 3)
                 return sq
             else:
                 raise Exception(sq.book.identifier + ' - Item cannot be found.')
