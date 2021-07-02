@@ -1,20 +1,26 @@
 import os
 import json
 
+from bgp import ia, DEFAULT_SEQUENCER
+
 RESULTS_PATH = 'results/bgp_results/'
-books = [doc['identifier'] for doc in json.load(open('2021-06-16-obgp_ids.json'))]
+books = []
+with open('2021-06-16-obgp_ids.jsonl') as fin:
+    for line in fin:
+        books.append(json.loads(line.replace("\n", ""))['identifier'])
 done_books = set([iaid.split('_genome.json')[0] for iaid in os.listdir(RESULTS_PATH)])
 
-from bgp import ia, DEFAULT_SEQUENCER
 with open('run.log', 'a') as fout:
     for book in books:
         if book in done_books:
-            print("Skipping: %s\n" % book)
+            print("Skipping: {}\n".format(book))
         else:
             try:
                 result = DEFAULT_SEQUENCER.sequence(book)
                 if result:
-                    fout.write("Success: %s\n" % book)
+                    fout.write("Success: {}\n".format(book))
                     result.save(path=RESULTS_PATH)
-            except:
-                fout.write("Failure: %s\n" % book)
+            except Exception as e:
+                fout.write("Failure: {} | {}\n".format(book, e))
+        # Force log writing to disk from memory for each book
+        fout.flush()
