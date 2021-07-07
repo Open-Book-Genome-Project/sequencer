@@ -240,7 +240,7 @@ class UrlExtractorModule(ExtractorModule):
     @staticmethod
     def validate_url(s):
         s = s.lower()
-        if s.lower().startswith('http'):
+        if s.startswith('http'):
             return s
 
     def __init__(self):
