@@ -1,11 +1,38 @@
-import os
+import argparse
 import json
+import os
+import sys
 
 from bgp import ia, DEFAULT_SEQUENCER
 
+# TODO
+# Make identifiers file passed as param
+# Switch to 1 folder per book
+# genome named book_genome.json
+# Make functions for UPLOADED, ISBN_ADDED, DATE_ADDED
+# Hit OL for ISBN info and save in folder
+# Create test ia items
+# Look into sqlite3
+
+parser = argparse.ArgumentParser(prog='[pipeline]',
+                                 description='Automate Open Book Genome Project sequencer')
+
+parser.add_argument('Path',
+                    metavar='source-path',
+                    type=str,
+                    help='path to the jsonl file with ia identifiers')
+
+args = parser.parse_args()
+
+input_path = args.Path
+
+if not os.path.isfile(input_path):
+    print('The path specified does not exist')
+    sys.exit()
+
 RESULTS_PATH = 'results/bgp_results/'
 books = []
-with open('2021-06-16-obgp_ids.jsonl') as fin:
+with open(input_path) as fin:
     for line in fin:
         books.append(json.loads(line.replace("\n", ""))['identifier'])
 done_books = set([iaid.split('_genome.json')[0] for iaid in os.listdir(RESULTS_PATH)])
