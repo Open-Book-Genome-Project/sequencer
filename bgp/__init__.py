@@ -129,6 +129,11 @@ class Sequencer:
                               access_key=s3_keys['access'],
                               secret_key=s3_keys['secret'])
 
+        def modify_metadata(self, metadata, itemid=None):
+            if getattr(self, 'book'):
+                itemid = itemid or self.book.identifier
+                ia.modify_metadata(itemid, metadata)
+
         @property
         def results(self):
             data = {p: self.pipeline[p].results for p in self.pipeline}
