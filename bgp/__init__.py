@@ -112,11 +112,12 @@ class Sequencer:
             self.total_time = 0
 
         def save(self, path=''):
+            item_path = path + self.book.identifier + '/'
             # trailing slash needed for path
             if getattr(self, 'book'):
-                if path and not os.path.exists(path):
-                    os.makedirs(path)
-                with open(path + self.book.identifier + '_genome.json', 'w') as txt:
+                if item_path and not os.path.exists(item_path):
+                    os.makedirs(item_path)
+                with open(item_path + 'book_genome.json', 'w') as txt:
                     txt.write(json.dumps(self.results))
 
         def upload(self, itemid=None):
@@ -132,7 +133,7 @@ class Sequencer:
         def modify_metadata(self, metadata, itemid=None):
             if getattr(self, 'book'):
                 itemid = itemid or self.book.identifier
-                ia.modify_metadata(itemid, metadata)
+                return ia.modify_metadata(itemid, metadata)
 
         @property
         def results(self):

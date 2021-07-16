@@ -6,8 +6,6 @@ import sys
 from bgp import ia, DEFAULT_SEQUENCER
 
 # TODO
-# Switch to 1 folder per book
-# genome named book_genome.json
 # Hit OL for ISBN info and save in folder
 # Look into sqlite3
 
@@ -60,25 +58,27 @@ def db_update_conflict(identifier):
 
 
 def update_isbn(result):
-    itemid = result.book.identifer
-    item_isbn = 'isbn' in result.book.metadata and result.book.metadata['isbn'][0]
+    itemid = result.book.identifier
+    if 'isbn' in result.book.metadata:
+        item_isbn = result.book.metadata['isbn'][0]
+    else: item_isbn = False
     c_isbns = result.results['pagetypes']['modules']['copyright_page']['results'][0]['isbns']
     b_isbns = result.results['pagetypes']['modules']['backpage_isbn']['results']
 
-    if c_isbns and b_isbns:
-        genome_isbn = [x for x in c_isbns if x in b_isbns]
-    elif b_isbns:
-        genome_isbn = [b_isbns[-1]]
-    elif c_isbns:
-        genome_isbn = [c_isbns[0]]
+    if c_isbns and b_isbns: genome_isbn = [x for x in c_isbns if x in b_isbns][0]
+    elif b_isbns: genome_isbn = b_isbns[-1]
+    elif c_isbns: genome_isbn = c_isbns[0]
 
     if genome_isbn:
         db_isbn_extracted(itemid, genome_isbn)
-        if not genome_isbn == item_isbn:
-            update = result.modify_metadata(dict(isbn=genome_isbn))
-            if update.status_code == 200:
-                db_update_succeed(itemid)
-            else: db_update_failed(itemid)
+        if not item_isbn:
+            try:
+                update = result.modify_metadata(dict(isbn=genome_isbn))
+                if update.status_code == 200:
+                    db_update_succeed(itemid)
+            except Exception as e:
+                db_update_failed(itemid)
+                raise e
         else: db_update_conflict(itemid)
     else: db_isbn_none(itemid)
 
@@ -86,19 +86,22 @@ def update_isbn(result):
 with open(input_path) as fin:
     for line in fin:
         books.append(json.loads(line.replace("\n", ""))['identifier'])
-done_books = set([iaid.split('_genome.json')[0] for iaid in os.listdir(RESULTS_PATH)])
+if RESULTS_PATH and not os.path.exists(RESULTS_PATH):
+    os.makedirs(RESULTS_PATH)
 
 with open('run.log', 'a') as fout:
     for book in books:
+        # done_books is redefined for each book because new books may have been added since sequence began
+        done_books = set([iaid for iaid in os.listdir(RESULTS_PATH)])
         if book in done_books:
             print("Skipping: {}\n".format(book))
         else:
             try:
                 result = DEFAULT_SEQUENCER.sequence(book)
                 if result:
-                    fout.write("Success: {}\n".format(book))
                     result.save(path=RESULTS_PATH)
                     update_isbn(result)
+                    fout.write("Success: {}\n".format(book))
             except Exception as e:
                 fout.write("Failure: {} | {}\n".format(book, e))
         # Force log writing to disk from memory for each book
