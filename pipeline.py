@@ -29,12 +29,14 @@ RESULTS_PATH = 'results/bgp_results/'
 books = []
 
 
-def touch(identifier, record):
+def touch(identifier, record, data=None):
     file_name = '{}{}/{}_{}'.format(RESULTS_PATH, identifier, record, identifier)
     if os.path.exists(file_name):
         raise Exception('DatabaseRecordConflict')
     else:
-        open(file_name, 'a').close()
+        f = open(file_name, 'a')
+        if data: f.write(data)
+        f.close()
 
 
 def db_isbn_extracted(identifier, isbn):
@@ -55,6 +57,14 @@ def db_update_succeed(identifier):
 
 def db_update_conflict(identifier):
     touch(identifier, 'UPDATE_CONFLICT')
+
+
+def db_urls_found(identifier, urls):
+    urls_count = len(urls)
+    urls_data = ''
+    for url in urls:
+        urls_data += '{}\n'.format(url)
+    touch(identifier, 'URLS_{}'.format(urls_count), data=urls_data)
 
 
 def update_isbn(result):
@@ -83,6 +93,12 @@ def update_isbn(result):
     else: db_isbn_none(itemid)
 
 
+def extract_urls(result):
+    itemid = result.book.identifier
+    urls = set([url for url in result.results['1grams']['modules']['urls']['results'] if 'archive.org' not in url])
+    db_urls_found(itemid, urls)
+
+
 with open(input_path) as fin:
     for line in fin:
         books.append(json.loads(line.replace("\n", ""))['identifier'])
@@ -101,6 +117,7 @@ with open('run.log', 'a') as fout:
                 if result:
                     result.save(path=RESULTS_PATH)
                     update_isbn(result)
+                    extract_urls(result)
                     fout.write("Success: {}\n".format(book))
             except Exception as e:
                 fout.write("Failure: {} | {}\n".format(book, e))
