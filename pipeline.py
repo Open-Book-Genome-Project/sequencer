@@ -6,6 +6,13 @@ import sys
 from bgp import ia, DEFAULT_SEQUENCER
 
 # TODO
+# Switch logging to filesystem database
+# Each function should be idempotent. What steps are there for each item. Program should be able to resume from any point of failure. If run multiple times won’t cause issues.
+# Add documentation to pipeline to make more readable
+# For db_* functions, if conflicting record exists, remove.
+# Make sure that update_isbn c_isbns and b_isbns are ok if all empty.
+# Separate function for get canonical isbn
+
 # Hit OL for ISBN info and save in folder
 # Look into sqlite3
 
@@ -67,18 +74,25 @@ def db_urls_found(identifier, urls):
     touch(identifier, 'URLS_{}'.format(urls_count), data=urls_data)
 
 
-def update_isbn(result):
-    itemid = result.book.identifier
-    if 'isbn' in result.book.metadata:
-        item_isbn = result.book.metadata['isbn'][0]
-    else: item_isbn = False
+def get_canonical_isbn(result):
     c_isbns = result.results['pagetypes']['modules']['copyright_page']['results'][0]['isbns']
     b_isbns = result.results['pagetypes']['modules']['backpage_isbn']['results']
 
-    if c_isbns and b_isbns: genome_isbn = [x for x in c_isbns if x in b_isbns][0]
-    elif b_isbns: genome_isbn = b_isbns[-1]
-    elif c_isbns: genome_isbn = c_isbns[0]
+    if c_isbns and b_isbns:
+        return [x for x in c_isbns if x in b_isbns][0]
+    elif b_isbns:
+        return b_isbns[-1]
+    elif c_isbns:
+        return c_isbns[0]
 
+
+def update_isbn(result):
+    itemid = result.book.identifier
+    # Checks if ia item already has isbn
+    if 'isbn' in result.book.metadata:
+        item_isbn = result.book.metadata['isbn'][0]
+    else: item_isbn = False
+    genome_isbn = get_canonical_isbn(result)
     if genome_isbn:
         db_isbn_extracted(itemid, genome_isbn)
         if not item_isbn:
