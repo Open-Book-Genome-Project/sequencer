@@ -10,8 +10,6 @@ from bgp import ia, DEFAULT_SEQUENCER
 # Each function should be idempotent. What steps are there for each item. Program should be able to resume from any point of failure. If run multiple times won’t cause issues.
 # Add documentation to pipeline to make more readable
 # For db_* functions, if conflicting record exists, remove.
-# Make sure that update_isbn c_isbns and b_isbns are ok if all empty.
-# Separate function for get canonical isbn
 
 # Hit OL for ISBN info and save in folder
 # Look into sqlite3
@@ -75,8 +73,12 @@ def db_urls_found(identifier, urls):
 
 
 def get_canonical_isbn(result):
-    c_isbns = result.results['pagetypes']['modules']['copyright_page']['results'][0]['isbns']
-    b_isbns = result.results['pagetypes']['modules']['backpage_isbn']['results']
+    c_isbns = None
+    b_isbns = None
+    if any(result.results['pagetypes']['modules']['copyright_page']['results']):
+        c_isbns = result.results['pagetypes']['modules']['copyright_page']['results'][0]['isbns']
+    if any(result.results['pagetypes']['modules']['backpage_isbn']['results']):
+        b_isbns = result.results['pagetypes']['modules']['backpage_isbn']['results']
 
     if c_isbns and b_isbns:
         return [x for x in c_isbns if x in b_isbns][0]
@@ -84,6 +86,8 @@ def get_canonical_isbn(result):
         return b_isbns[-1]
     elif c_isbns:
         return c_isbns[0]
+    else:
+        return None
 
 
 def update_isbn(result):
