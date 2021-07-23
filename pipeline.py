@@ -1,4 +1,5 @@
 import argparse
+import glob
 import json
 import os
 import sys
@@ -135,18 +136,21 @@ if RESULTS_PATH and not os.path.exists(RESULTS_PATH):
 
 with open('run.log', 'a') as fout:
     for book in books:
-        if book in os.listdir(RESULTS_PATH):
-            print("Skipping: {}\n".format(book))
-        else:
-            try:
+        try:
+            if not os.path.exists('{}{}/book_genome.json'.format(RESULTS_PATH, book)):
                 result = DEFAULT_SEQUENCER.sequence(book)
-                if result:
-                    result.save(path=RESULTS_PATH)
-                    update_isbn(result)
-                    extract_urls(result)
-                    db_sequence_success(book)
-            except Exception:
-                e = traceback.format_exc()
-                db_sequence_failure(book, e)
+                result.save(path=RESULTS_PATH)
+            f = open('{}{}/book_genome.json'.format(RESULTS_PATH, book),)
+            genome = json.load(f)
+            update_failed = os.path.exists('{}{}/UPDATE_FAILED_{}'.format(RESULTS_PATH, book, book))
+            isbn_attempted = glob.glob('{}{}/ISBN_*'.format(RESULTS_PATH, book))
+            if update_failed or not isbn_attempted:
+                update_isbn(result)
+            if not glob.glob('{}{}/URLS_*'.format(RESULTS_PATH, book)):
+                extract_urls(result)
+            db_sequence_success(book)
+        except Exception:
+            e = traceback.format_exc()
+            db_sequence_failure(book, e)
         # Force log writing to disk from memory for each book
         fout.flush()
