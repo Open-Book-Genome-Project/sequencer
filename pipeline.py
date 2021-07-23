@@ -2,11 +2,11 @@ import argparse
 import json
 import os
 import sys
+import traceback
 
 from bgp import ia, DEFAULT_SEQUENCER
 
 # TODO
-# Switch logging to filesystem database
 # Each function should be idempotent. What steps are there for each item. Program should be able to resume from any point of failure. If run multiple times won’t cause issues.
 # Add documentation to pipeline to make more readable
 # For db_* functions, if conflicting record exists, remove.
@@ -72,12 +72,22 @@ def db_urls_found(identifier, urls):
     touch(identifier, 'URLS_{}'.format(urls_count), data=urls_data)
 
 
+def db_sequence_success(identifier):
+    fout.write("Success: {}\n".format(identifier))
+    touch(identifier, 'SEQUENCE_SUCCESS')
+
+
+def db_sequence_failure(identifier, exception):
+    fout.write("Failure: {} | {}\n".format(identifier, exception))
+    touch(identifier, 'SEQUENCE_FAILURE', data=str(exception))
+
+
 def get_canonical_isbn(result):
     c_isbns = None
     b_isbns = None
-    if any(result.results['pagetypes']['modules']['copyright_page']['results']):
+    if result.results['pagetypes']['modules']['copyright_page']['results']:
         c_isbns = result.results['pagetypes']['modules']['copyright_page']['results'][0]['isbns']
-    if any(result.results['pagetypes']['modules']['backpage_isbn']['results']):
+    if result.results['pagetypes']['modules']['backpage_isbn']['results']:
         b_isbns = result.results['pagetypes']['modules']['backpage_isbn']['results']
 
     if c_isbns and b_isbns:
@@ -136,8 +146,9 @@ with open('run.log', 'a') as fout:
                     result.save(path=RESULTS_PATH)
                     update_isbn(result)
                     extract_urls(result)
-                    fout.write("Success: {}\n".format(book))
-            except Exception as e:
-                fout.write("Failure: {} | {}\n".format(book, e))
+                    db_sequence_success(book)
+            except Exception:
+                e = traceback.format_exc()
+                db_sequence_failure(book, e)
         # Force log writing to disk from memory for each book
         fout.flush()
