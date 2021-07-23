@@ -135,9 +135,7 @@ if RESULTS_PATH and not os.path.exists(RESULTS_PATH):
 
 with open('run.log', 'a') as fout:
     for book in books:
-        # done_books is redefined for each book because new books may have been added since sequence began
-        done_books = set([iaid for iaid in os.listdir(RESULTS_PATH)])
-        if book in done_books:
+        if book in os.listdir(RESULTS_PATH):
             print("Skipping: {}\n".format(book))
         else:
             try:
