@@ -145,6 +145,7 @@ class Sequencer:
                 }
             data['version'] = get_software_version()
             data['timestamp'] = time.time()
+            data['identifier'] = self.book.identifier
             return data
 
     def __init__(self, pipeline):
