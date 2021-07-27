@@ -5,13 +5,9 @@ import os
 import sys
 import traceback
 
-from bgp import ia, DEFAULT_SEQUENCER
+from bgp import DEFAULT_SEQUENCER, modify_metadata, item_metdata
 
 # TODO
-# Each function should be idempotent. What steps are there for each item. Program should be able to resume from any point of failure. If run multiple times won’t cause issues.
-# Add documentation to pipeline to make more readable
-# For db_* functions, if conflicting record exists, remove.
-
 # Hit OL for ISBN info and save in folder
 # Look into sqlite3
 
@@ -37,12 +33,10 @@ books = []
 
 def touch(identifier, record, data=None):
     file_name = '{}{}/{}_{}'.format(RESULTS_PATH, identifier, record, identifier)
-    if os.path.exists(file_name):
-        raise Exception('DatabaseRecordConflict')
-    else:
-        f = open(file_name, 'a')
-        if data: f.write(data)
-        f.close()
+    f = open(file_name, 'a')
+    if data:
+        f.write(data)
+    f.close()
 
 
 def db_isbn_extracted(identifier, isbn):
@@ -58,6 +52,10 @@ def db_update_failed(identifier):
 
 
 def db_update_succeed(identifier):
+    if os.path.exists('{}{}/UPDATE_FAILED_{}'.format(RESULTS_PATH, identifier, identifier)):
+        os.remove('{}{}/UPDATE_FAILED_{}'.format(RESULTS_PATH, identifier, identifier))
+    if os.path.exists('{}{}/UPDATE_CONFLICT_{}'.format(RESULTS_PATH, identifier, identifier)):
+        os.remove('{}{}/UPDATE_CONFLICT_{}'.format(RESULTS_PATH, identifier, identifier))
     touch(identifier, 'UPDATE_SUCCEED')
 
 
@@ -74,8 +72,8 @@ def db_urls_found(identifier, urls):
 
 
 def db_sequence_success(identifier):
-    fout.write("Success: {}\n".format(identifier))
-    touch(identifier, 'SEQUENCE_SUCCESS')
+    if os.path.exists('{}{}/SEQUENCE_FAILURE_{}'.format(RESULTS_PATH, identifier, identifier)):
+        os.remove('{}{}/SEQUENCE_FAILURE_{}'.format(RESULTS_PATH, identifier, identifier))
 
 
 def db_sequence_failure(identifier, exception):
@@ -83,13 +81,13 @@ def db_sequence_failure(identifier, exception):
     touch(identifier, 'SEQUENCE_FAILURE', data=str(exception))
 
 
-def get_canonical_isbn(result):
+def get_canonical_isbn(genome):
     c_isbns = None
     b_isbns = None
-    if result.results['pagetypes']['modules']['copyright_page']['results']:
-        c_isbns = result.results['pagetypes']['modules']['copyright_page']['results'][0]['isbns']
-    if result.results['pagetypes']['modules']['backpage_isbn']['results']:
-        b_isbns = result.results['pagetypes']['modules']['backpage_isbn']['results']
+    if genome['pagetypes']['modules']['copyright_page']['results']:
+        c_isbns = genome['pagetypes']['modules']['copyright_page']['results'][0]['isbns']
+    if genome['pagetypes']['modules']['backpage_isbn']['results']:
+        b_isbns = genome['pagetypes']['modules']['backpage_isbn']['results']
 
     if c_isbns and b_isbns:
         return [x for x in c_isbns if x in b_isbns][0]
@@ -101,30 +99,34 @@ def get_canonical_isbn(result):
         return None
 
 
-def update_isbn(result):
-    itemid = result.book.identifier
+def update_isbn(genome):
+    itemid = genome['identifier']
     # Checks if ia item already has isbn
-    if 'isbn' in result.book.metadata:
-        item_isbn = result.book.metadata['isbn'][0]
-    else: item_isbn = False
-    genome_isbn = get_canonical_isbn(result)
+    metadata = item_metdata(itemid)['metadata']
+    if 'isbn' in metadata:
+        item_isbn = item_metdata(itemid)['metadata']['isbn'][0]
+    else:
+        item_isbn = False
+    genome_isbn = get_canonical_isbn(genome)
     if genome_isbn:
         db_isbn_extracted(itemid, genome_isbn)
         if not item_isbn:
             try:
-                update = result.modify_metadata(dict(isbn=genome_isbn))
+                update = modify_metadata(itemid, dict(isbn=genome_isbn))
                 if update.status_code == 200:
                     db_update_succeed(itemid)
             except Exception as e:
                 db_update_failed(itemid)
                 raise e
-        else: db_update_conflict(itemid)
-    else: db_isbn_none(itemid)
+        else:
+            db_update_conflict(itemid)
+    else:
+        db_isbn_none(itemid)
 
 
-def extract_urls(result):
-    itemid = result.book.identifier
-    urls = set([url for url in result.results['1grams']['modules']['urls']['results'] if 'archive.org' not in url])
+def extract_urls(genome):
+    itemid = genome['identifier']
+    urls = set([url for url in genome['1grams']['modules']['urls']['results'] if 'archive.org' not in url])
     db_urls_found(itemid, urls)
 
 
@@ -145,9 +147,9 @@ with open('run.log', 'a') as fout:
             update_failed = os.path.exists('{}{}/UPDATE_FAILED_{}'.format(RESULTS_PATH, book, book))
             isbn_attempted = glob.glob('{}{}/ISBN_*'.format(RESULTS_PATH, book))
             if update_failed or not isbn_attempted:
-                update_isbn(result)
+                update_isbn(genome)
             if not glob.glob('{}{}/URLS_*'.format(RESULTS_PATH, book)):
-                extract_urls(result)
+                extract_urls(genome)
             db_sequence_success(book)
         except Exception:
             e = traceback.format_exc()

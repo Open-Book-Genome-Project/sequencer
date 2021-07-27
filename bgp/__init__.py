@@ -98,6 +98,14 @@ def get_software_version():  # -> str:
     cmd = "git rev-parse --short HEAD --".split()
     return str(Popen(cmd, stdout=PIPE, stderr=STDOUT).stdout.read().decode().strip())
 
+def modify_metadata(itemid, metadata):
+    return ia.modify_metadata(itemid, metadata)
+
+def item_metdata(itemid):
+    item = ia.get_item(itemid)
+    metadata = item.item_metadata
+    return metadata
+
 
 ia.get_book_items = get_book_items
 ia.Item.xml = property(_memoize_xml)
@@ -129,11 +137,6 @@ class Sequencer:
                     ia.upload(itemid, {'%s_genome.json' % (itemid): tmp},
                               access_key=s3_keys['access'],
                               secret_key=s3_keys['secret'])
-
-        def modify_metadata(self, metadata, itemid=None):
-            if getattr(self, 'book'):
-                itemid = itemid or self.book.identifier
-                return ia.modify_metadata(itemid, metadata)
 
         @property
         def results(self):
