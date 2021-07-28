@@ -100,6 +100,11 @@ def get_canonical_isbn(genome):
 
 
 def update_isbn(genome):
+    """
+    Updates the Archive.org metadata for an item to add missing ISBN when possible.
+    Considers any ISBN-like identifiers extracted from the book's sequenced genome
+    in order to identify a canonical ISBN for this books.
+    """
     itemid = genome['identifier']
     # Checks if ia item already has isbn
     metadata = item_metdata(itemid)['metadata']
@@ -125,6 +130,9 @@ def update_isbn(genome):
 
 
 def extract_urls(genome):
+    """
+    Save item's extracted urls to database.
+    """
     itemid = genome['identifier']
     urls = set([url for url in genome['1grams']['modules']['urls']['results'] if 'archive.org' not in url])
     db_urls_found(itemid, urls)
