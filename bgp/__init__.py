@@ -207,3 +207,17 @@ DEFAULT_SEQUENCER = Sequencer({
         'backpage_isbn': BackpageIsbnExtractorModule()
     })
 })
+
+MINIMAL_SEQUENCER = Sequencer({
+    '2grams': NGramProcessor(modules={
+        'term_freq': WordFreqModule()
+    }, n=2, threshold=2, stop_words=STOP_WORDS),
+    '1grams': NGramProcessor(modules={
+        'term_freq': WordFreqModule(),
+        'urls': UrlExtractorModule()
+    }, n=1, stop_words=None),
+    'pagetypes': PageTypeProcessor(modules={
+        'copyright_page': CopyrightPageDetectorModule(),
+        'backpage_isbn': BackpageIsbnExtractorModule()
+    })
+})

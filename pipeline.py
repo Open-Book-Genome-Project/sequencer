@@ -5,7 +5,7 @@ import os
 import sys
 import traceback
 
-from bgp import DEFAULT_SEQUENCER, modify_metadata, item_metdata
+from bgp import MINIMAL_SEQUENCER, modify_metadata, item_metdata
 
 # TODO
 # Hit OL for ISBN info and save in folder
@@ -89,14 +89,12 @@ def get_canonical_isbn(genome):
     if genome['pagetypes']['modules']['backpage_isbn']['results']:
         b_isbns = genome['pagetypes']['modules']['backpage_isbn']['results']
 
-    if c_isbns and b_isbns:
+    if c_isbns and b_isbns and any(x in c_isbns for x in b_isbns):
         return [x for x in c_isbns if x in b_isbns][0]
-    elif b_isbns:
-        return b_isbns[-1]
     elif c_isbns:
         return c_isbns[0]
-    else:
-        return None
+    elif b_isbns:
+        return b_isbns[-1]
 
 
 def update_isbn(genome):
@@ -117,6 +115,7 @@ def update_isbn(genome):
         db_isbn_extracted(itemid, genome_isbn)
         if not item_isbn:
             try:
+                pass
                 update = modify_metadata(itemid, dict(isbn=genome_isbn))
                 if update.status_code == 200:
                     db_update_succeed(itemid)
@@ -147,8 +146,10 @@ if RESULTS_PATH and not os.path.exists(RESULTS_PATH):
 with open('run.log', 'a') as fout:
     for book in books:
         try:
+            if not os.path.exists('{}{}/'.format(RESULTS_PATH, book)):
+                os.makedirs('{}{}/'.format(RESULTS_PATH, book))
             if not os.path.exists('{}{}/book_genome.json'.format(RESULTS_PATH, book)):
-                result = DEFAULT_SEQUENCER.sequence(book)
+                result = MINIMAL_SEQUENCER.sequence(book)
                 result.save(path=RESULTS_PATH)
             f = open('{}{}/book_genome.json'.format(RESULTS_PATH, book),)
             genome = json.load(f)
