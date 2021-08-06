@@ -120,15 +120,16 @@ class Sequencer:
                 with open(item_path + 'book_genome.json', 'w') as txt:
                     txt.write(json.dumps(self.results))
 
-        def upload(self, itemid=None):
-            if getattr(self, 'book'):
-                itemid = itemid or self.book.identifier
-                with tempfile.NamedTemporaryFile() as tmp:
-                    tmp.write(json.dumps(self.results).encode())
-                    tmp.flush()
-                    ia.upload(itemid, {'%s_genome.json' % (itemid): tmp},
-                              access_key=s3_keys['access'],
-                              secret_key=s3_keys['secret'])
+        def upload(self, itemid=None, results=None):
+            if not results:
+                results = self.results
+            itemid = itemid or self.book.identifier or results['identifier']
+            with tempfile.NamedTemporaryFile() as tmp:
+                tmp.write(json.dumps(results).encode())
+                tmp.flush()
+                ia.upload(itemid, {'%s_genome.json' % (itemid): tmp},
+                          access_key=s3_keys['access'],
+                          secret_key=s3_keys['secret'])
 
         @property
         def results(self):
