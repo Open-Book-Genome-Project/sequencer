@@ -123,7 +123,7 @@ class Sequencer:
         def upload(self, itemid=None, results=None):
             if not results:
                 results = self.results
-            itemid = itemid or self.book.identifier or results['identifier']
+            itemid = itemid or results['identifier']
             with tempfile.NamedTemporaryFile() as tmp:
                 tmp.write(json.dumps(results).encode())
                 tmp.flush()

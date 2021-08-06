@@ -7,6 +7,8 @@ import traceback
 
 from bgp import MINIMAL_SEQUENCER, ia
 
+import bgp
+
 # TODO
 # Hit OL for ISBN info and save in folder
 # Look into sqlite3
@@ -164,7 +166,10 @@ with open('run.log', 'a') as fout:
             if not glob.glob('{}{}/URLS_*'.format(RESULTS_PATH, book)):
                 extract_urls(genome)
             if not os.path.exists('{}{}/GENOME_UPDATED_{}'.format(RESULTS_PATH, book, book)):
-                result.upload(results=genome)
+                try:
+                    result.upload(results=genome)
+                except NameError:
+                    bgp.Sequencer.Sequence.upload(self=None, results=genome)
                 db_genome_updated(book)
             db_sequence_success(book)
         except Exception:
