@@ -5,7 +5,7 @@ import os
 import sys
 import traceback
 
-from bgp import MINIMAL_SEQUENCER, modify_metadata, item_metdata
+from bgp import MINIMAL_SEQUENCER, ia
 
 # TODO
 # Hit OL for ISBN info and save in folder
@@ -105,9 +105,10 @@ def update_isbn(genome):
     """
     itemid = genome['identifier']
     # Checks if ia item already has isbn
-    metadata = item_metdata(itemid)['metadata']
+    item = ia.get_item(itemid)
+    metadata = item.item_metadata['metadata']
     if 'isbn' in metadata:
-        item_isbn = item_metdata(itemid)['metadata']['isbn'][0]
+        item_isbn = item.item_metadata['metadata']['isbn'][0]
     else:
         item_isbn = False
     genome_isbn = get_canonical_isbn(genome)
@@ -115,8 +116,7 @@ def update_isbn(genome):
         db_isbn_extracted(itemid, genome_isbn)
         if not item_isbn:
             try:
-                pass
-                update = modify_metadata(itemid, dict(isbn=genome_isbn))
+                update = item.modify_metadata(dict(isbn=genome_isbn))
                 if update.status_code == 200:
                     db_update_succeed(itemid)
             except Exception as e:

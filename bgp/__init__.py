@@ -98,14 +98,6 @@ def get_software_version():  # -> str:
     cmd = "git rev-parse --short HEAD --".split()
     return str(Popen(cmd, stdout=PIPE, stderr=STDOUT).stdout.read().decode().strip())
 
-def modify_metadata(itemid, metadata):
-    return ia.modify_metadata(itemid, metadata)
-
-def item_metdata(itemid):
-    item = ia.get_item(itemid)
-    metadata = item.item_metadata
-    return metadata
-
 
 ia.get_book_items = get_book_items
 ia.Item.xml = property(_memoize_xml)
