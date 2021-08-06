@@ -127,7 +127,7 @@ class Sequencer:
             with tempfile.NamedTemporaryFile() as tmp:
                 tmp.write(json.dumps(results).encode())
                 tmp.flush()
-                ia.upload(itemid, {'%s_genome.json' % (itemid): tmp},
+                ia.upload(itemid, {'book_genome.json': tmp},
                           access_key=s3_keys['access'],
                           secret_key=s3_keys['secret'])
 
