@@ -71,6 +71,10 @@ def db_urls_found(identifier, urls):
     touch(identifier, 'URLS_{}'.format(urls_count), data=urls_data)
 
 
+def db_genome_updated(identifier):
+    touch(identifier, 'GENOME_UPDATED')
+
+
 def db_sequence_success(identifier):
     if os.path.exists('{}{}/SEQUENCE_FAILURE_{}'.format(RESULTS_PATH, identifier, identifier)):
         os.remove('{}{}/SEQUENCE_FAILURE_{}'.format(RESULTS_PATH, identifier, identifier))
@@ -159,6 +163,9 @@ with open('run.log', 'a') as fout:
                 update_isbn(genome)
             if not glob.glob('{}{}/URLS_*'.format(RESULTS_PATH, book)):
                 extract_urls(genome)
+            if not os.path.exists('{}{}/GENOME_UPDATED_{}'.format(RESULTS_PATH, book, book)):
+                result.upload(results=genome)
+                db_genome_updated(book)
             db_sequence_success(book)
         except Exception:
             e = traceback.format_exc()
