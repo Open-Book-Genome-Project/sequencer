@@ -91,15 +91,20 @@ def get_canonical_isbn(genome):
     c_isbns = None
     b_isbns = None
     if genome['pagetypes']['modules']['copyright_page']['results']:
+        # ISBN's extracted from copyright page
         c_isbns = genome['pagetypes']['modules']['copyright_page']['results'][0]['isbns']
     if genome['pagetypes']['modules']['backpage_isbn']['results']:
+        # ISBN's extracted from back page
         b_isbns = genome['pagetypes']['modules']['backpage_isbn']['results']
 
     if c_isbns and b_isbns and any(x in c_isbns for x in b_isbns):
+        # Return matching ISBN from copyright page and back page
         return [x for x in c_isbns if x in b_isbns][0]
     elif c_isbns:
+        # Return first ISBN on copyright page
         return c_isbns[0]
     elif b_isbns:
+        # Return last isbn on back page
         return b_isbns[-1]
 
 
