@@ -78,6 +78,87 @@ If you want to run a default test to make sure everything works, try:
 >>> genome.results
 ```
 
+## Using pipeline.py
+
+This pipeline allows a user to sequence a list of books from a jsonl in the following format:
+
+```jsonl
+{"identifier": "samplebook"}
+{"identifier": "9780262517638OpenAccess"}
+```
+
+The pipeline then automatically chooses the most probable isbn for the book and attempts to update ia metadata accordingly while keeping a filesystem based database of all these actions.
+
+
+|Record|Filesystem Action|
+| ---- | ---- |
+| How do we determine which books we've successfully uploaded a genome     | Touches `GENOME_UPDATED_{identifier}`    |
+| How do we determine the ISBNs of all books we’ve sequenced so far    | Touches `ISBN_1234567890_{identifier}`    |
+| How do we determine which books were sequenced but had no ISBN     | Touches `UPDATE_NONE_{identifier}`    |
+| How do we know which books attempted updating but failed     | `UPDATE_FAILED_{identifier}`     |
+| How do we know which books succeeded at updating and succeed     | `UPDATE_SUCCEEDED_{identifier}`     |
+| How do we know if item already has isbn metadata and is skipped     | `UPDATE_CONFLICT_{identifier}`     |
+| How do we know how many new urls were found in a book     | `URLS_{number_of_urls}_{identifier}`     |
+
+The user can can grep and pipe to wc -l which tells them how many for each status and lists those items
+
+
+### Example Usage
+
+Here is a archive item with the identifier `samplebook`. It has an isbn in the text of the book but no isbn metadata.
+
+<img width="638" alt="Screen Shot 2021-07-15 at 6 06 08 PM" src="https://user-images.githubusercontent.com/6785029/125876309-efed1316-96a2-47fb-a874-77169be15529.png">
+
+There is a jsonl file with the items to be sequenced listed on new lines.
+
+```jsonl
+{"identifier": "samplebook"}
+{"identifier": "9780262517638OpenAccess"}
+```
+
+To use the pipeline, run `python pipeline.py samplebook.jsonl`
+
+You can specify the amount of pipeline processes to run concurrently with `--p {number of processes}` as a parameter. For example: `python pipeline.py --p 4 samplebook.jsonl`
+
+If we `tree results/bgp_results` now we get:
+
+```
+results/bgp_results
+├── 9780262517638OpenAccess
+│   ├── ISBN_9780262517638_9780262517638OpenAccess
+│   ├── UPDATE_CONFLICT_9780262517638OpenAccess
+│   ├── URLS_290_9780262517638OpenAccess
+│   └── book_genome.json
+└── samplebook
+    ├── ISBN_0787959529_samplebook
+    ├── UPDATE_SUCCEED_samplebook
+    ├── URLS_0_samplebook
+    └── book_genome.json
+
+2 directories, 8 files
+```
+
+If we check the metadata for the book on archive.org again we can see that the isbn field has been updated.
+
+<img width="638" alt="Screen Shot 2021-07-15 at 6 06 08 PM" src="https://user-images.githubusercontent.com/6785029/125876475-976495e1-05ac-465d-bac6-6fd8fe9ca5cb.png">
+
+There is also a file generated named `URLS_0_samplebook` which indicates that 0 non 'archive.org' were extracted.
+
+In the case of another item like `9780262517638OpenAccess`, the filename indicates that 290 new urls were extracted. If we look at the contents of that file we will see all the unique urls extracted separated by newlines.
+
+```
+http://blogs.law.harvard.edu/pamphlet/2009/05/29/what-percentage
+http://www.sherpa.ac.uk/romeo
+http://www.library.yale.edu/~llicense/listarchives/0405/msg00038
+http://dash.harvard.edu/bitstream/handle/l/4552050/suber_nofee
+http://dx.doi.org/10.1371/journal.pone.0013636
+http://doctorrw.blogspot.com/2007/05/tabloid-based-medicine
+... etc.
+```
+
+The `9780262517638OpenAccess` directory also shows that a url was extracted with the `ISBN_9780262517638_9780262517638OpenAccess` record, but was the ia item was not updated because a isbn already existed with the `UPDATE_CONFLICT_9780262517638OpenAccess`
+
+
 ## Contributing a Module
 
 1. Please [read the whitepaper](https://docs.google.com/document/d/1eybbw_qZ3EE9CJg868BhPuq5z_36Wq2G0Ki3Lkde9v8/edit?ts=5e5edcd1#) and look through our community list of [proposed or requested modules](https://docs.google.com/document/d/1eybbw_qZ3EE9CJg868BhPuq5z_36Wq2G0Ki3Lkde9v8/edit?ts=5e5edcd1#heading=h.dj2jqsxuy8my)
