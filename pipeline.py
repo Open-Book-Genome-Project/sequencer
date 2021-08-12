@@ -81,7 +81,6 @@ def db_sequence_success(identifier):
 
 
 def db_sequence_failure(identifier, exception):
-    fout.write("Failure: {} | {}\n".format(identifier, exception))
     touch(identifier, 'SEQUENCE_FAILURE', data=str(exception))
 
 
@@ -152,33 +151,30 @@ with open(input_path) as fin:
 if RESULTS_PATH and not os.path.exists(RESULTS_PATH):
     os.makedirs(RESULTS_PATH)
 
-with open('run.log', 'a') as fout:
-    for book in books:
-        try:
-            genome = None
-            if not os.path.exists('{}{}/'.format(RESULTS_PATH, book)):
-                os.makedirs('{}{}/'.format(RESULTS_PATH, book))
-            if not os.path.exists('{}{}/book_genome.json'.format(RESULTS_PATH, book)):
-                genome = MINIMAL_SEQUENCER.sequence(book)
-                genome.save(path=RESULTS_PATH)
-                genome.upload()
-                db_genome_updated(book)
-            if not genome:
-                # Get genome from file if not in memory
-                f = open('{}{}/book_genome.json'.format(RESULTS_PATH, book),)
-                genome = json.load(f)
-            update_failed = os.path.exists('{}{}/UPDATE_FAILED_{}'.format(RESULTS_PATH, book, book))
-            isbn_attempted = glob.glob('{}{}/ISBN_*'.format(RESULTS_PATH, book))
-            if update_failed or not isbn_attempted:
-                update_isbn(genome)
-            if not glob.glob('{}{}/URLS_*'.format(RESULTS_PATH, book)):
-                extract_urls(genome)
-            if not os.path.exists('{}{}/GENOME_UPDATED_{}'.format(RESULTS_PATH, book, book)):
-                MINIMAL_SEQUENCER._upload(results=genome)
-                db_genome_updated(book)
-            db_sequence_success(book)
-        except Exception:
-            e = traceback.format_exc()
-            db_sequence_failure(book, e)
-        # Force log writing to disk from memory for each book
-        fout.flush()
+for book in books:
+    try:
+        genome = None
+        if not os.path.exists('{}{}/'.format(RESULTS_PATH, book)):
+            os.makedirs('{}{}/'.format(RESULTS_PATH, book))
+        if not os.path.exists('{}{}/book_genome.json'.format(RESULTS_PATH, book)):
+            genome = MINIMAL_SEQUENCER.sequence(book)
+            genome.save(path=RESULTS_PATH)
+            genome.upload()
+            db_genome_updated(book)
+        if not genome:
+            # Get genome from file if not in memory
+            f = open('{}{}/book_genome.json'.format(RESULTS_PATH, book),)
+            genome = json.load(f)
+        update_failed = os.path.exists('{}{}/UPDATE_FAILED_{}'.format(RESULTS_PATH, book, book))
+        isbn_attempted = glob.glob('{}{}/ISBN_*'.format(RESULTS_PATH, book))
+        if update_failed or not isbn_attempted:
+            update_isbn(genome)
+        if not glob.glob('{}{}/URLS_*'.format(RESULTS_PATH, book)):
+            extract_urls(genome)
+        if not os.path.exists('{}{}/GENOME_UPDATED_{}'.format(RESULTS_PATH, book, book)):
+            MINIMAL_SEQUENCER._upload(results=genome)
+            db_genome_updated(book)
+        db_sequence_success(book)
+    except Exception:
+        e = traceback.format_exc()
+        db_sequence_failure(book, e)
