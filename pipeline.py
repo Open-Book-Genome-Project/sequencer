@@ -155,15 +155,18 @@ if RESULTS_PATH and not os.path.exists(RESULTS_PATH):
 with open('run.log', 'a') as fout:
     for book in books:
         try:
+            genome = None
             if not os.path.exists('{}{}/'.format(RESULTS_PATH, book)):
                 os.makedirs('{}{}/'.format(RESULTS_PATH, book))
             if not os.path.exists('{}{}/book_genome.json'.format(RESULTS_PATH, book)):
-                result = MINIMAL_SEQUENCER.sequence(book)
-                result.save(path=RESULTS_PATH)
-                result.upload()
+                genome = MINIMAL_SEQUENCER.sequence(book)
+                genome.save(path=RESULTS_PATH)
+                genome.upload()
                 db_genome_updated(book)
-            f = open('{}{}/book_genome.json'.format(RESULTS_PATH, book),)
-            genome = json.load(f)
+            if not genome:
+                # Get genome from file if not in memory
+                f = open('{}{}/book_genome.json'.format(RESULTS_PATH, book),)
+                genome = json.load(f)
             update_failed = os.path.exists('{}{}/UPDATE_FAILED_{}'.format(RESULTS_PATH, book, book))
             isbn_attempted = glob.glob('{}{}/ISBN_*'.format(RESULTS_PATH, book))
             if update_failed or not isbn_attempted:
