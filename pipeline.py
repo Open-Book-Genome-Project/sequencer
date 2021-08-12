@@ -1,4 +1,5 @@
 import argparse
+import concurrent.futures
 import glob
 import json
 import os
@@ -14,6 +15,12 @@ from bgp import MINIMAL_SEQUENCER, ia
 parser = argparse.ArgumentParser(prog='[pipeline]',
                                  description='Automate Open Book Genome Project sequencer')
 
+parser.add_argument('--processes',
+                    action='store',
+                    metavar='process-count',
+                    type=int,
+                    help='number of pipeline processes to run concurrently (default is 1)')
+
 parser.add_argument('Path',
                     metavar='source-path',
                     type=str,
@@ -22,6 +29,10 @@ parser.add_argument('Path',
 args = parser.parse_args()
 
 input_path = args.Path
+process_count = args.processes
+
+if not process_count:
+    process_count = 1
 
 if not os.path.isfile(input_path):
     print('The path specified does not exist')
@@ -151,7 +162,8 @@ with open(input_path) as fin:
 if RESULTS_PATH and not os.path.exists(RESULTS_PATH):
     os.makedirs(RESULTS_PATH)
 
-for book in books:
+
+def run_pipeline(book):
     try:
         genome = None
         if not os.path.exists('{}{}/'.format(RESULTS_PATH, book)):
@@ -161,6 +173,7 @@ for book in books:
             genome.save(path=RESULTS_PATH)
             genome.upload()
             db_genome_updated(book)
+            genome = genome.results
         if not genome:
             # Get genome from file if not in memory
             f = open('{}{}/book_genome.json'.format(RESULTS_PATH, book),)
@@ -178,3 +191,8 @@ for book in books:
     except Exception:
         e = traceback.format_exc()
         db_sequence_failure(book, e)
+
+
+executor = concurrent.futures.ProcessPoolExecutor(process_count)
+futures = [executor.submit(run_pipeline, book) for book in books]
+concurrent.futures.wait(futures)
