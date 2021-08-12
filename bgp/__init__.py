@@ -177,8 +177,8 @@ class Sequencer:
             logging.error(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
 
     @classmethod
-    def _upload(cls, itemid=None, results=None):
-        itemid = itemid or results['identifier']
+    def _upload(cls, results=None):
+        itemid = results.get('identifier')
         with tempfile.NamedTemporaryFile() as tmp:
             tmp.write(json.dumps(results).encode())
             tmp.flush()

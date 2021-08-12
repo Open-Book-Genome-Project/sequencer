@@ -8,10 +8,6 @@ import traceback
 
 from bgp import MINIMAL_SEQUENCER, ia
 
-# TODO
-# Hit OL for ISBN info and save in folder
-# Look into sqlite3
-
 parser = argparse.ArgumentParser(prog='[pipeline]',
                                  description='Automate Open Book Genome Project sequencer')
 
@@ -122,7 +118,7 @@ def update_isbn(genome):
     Considers any ISBN-like identifiers extracted from the book's sequenced genome
     in order to identify a canonical ISBN for this books.
     """
-    itemid = genome['identifier']
+    itemid = genome.get('identifier')
     # Checks if ia item already has isbn
     item = ia.get_item(itemid)
     metadata = item.item_metadata['metadata']
@@ -151,7 +147,7 @@ def extract_urls(genome):
     """
     Save item's extracted urls to database.
     """
-    itemid = genome['identifier']
+    itemid = genome.get('identifier')
     urls = set([url for url in genome['1grams']['modules']['urls']['results'] if 'archive.org' not in url])
     db_urls_found(itemid, urls)
 
