@@ -120,16 +120,8 @@ class Sequencer:
                 with open(item_path + 'book_genome.json', 'w') as txt:
                     txt.write(json.dumps(self.results))
 
-        def upload(self, itemid=None, results=None):
-            if not results:
-                results = self.results
-            itemid = itemid or results['identifier']
-            with tempfile.NamedTemporaryFile() as tmp:
-                tmp.write(json.dumps(results).encode())
-                tmp.flush()
-                ia.upload(itemid, {'book_genome.json': tmp},
-                          access_key=s3_keys['access'],
-                          secret_key=s3_keys['secret'])
+        def upload(self):
+            Sequencer._upload(results=self.results)
 
         @property
         def results(self):
@@ -183,6 +175,16 @@ class Sequencer:
         except requests.exceptions.HTTPError:
             raise Exception(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
             logging.error(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
+
+    @classmethod
+    def _upload(cls, itemid=None, results=None):
+        itemid = itemid or results['identifier']
+        with tempfile.NamedTemporaryFile() as tmp:
+            tmp.write(json.dumps(results).encode())
+            tmp.flush()
+            ia.upload(itemid, {'book_genome.json': tmp},
+                      access_key=s3_keys['access'],
+                      secret_key=s3_keys['secret'])
 
 DEFAULT_SEQUENCER = Sequencer({
     '2grams': NGramProcessor(modules={
