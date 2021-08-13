@@ -112,22 +112,16 @@ class Sequencer:
             self.total_time = 0
 
         def save(self, path=''):
+            item_path = path + self.book.identifier + '/'
             # trailing slash needed for path
             if getattr(self, 'book'):
-                if path and not os.path.exists(path):
-                    os.makedirs(path)
-                with open(path + self.book.identifier + '_genome.json', 'w') as txt:
+                if item_path and not os.path.exists(item_path):
+                    os.makedirs(item_path)
+                with open(item_path + 'book_genome.json', 'w') as txt:
                     txt.write(json.dumps(self.results))
 
-        def upload(self, itemid=None):
-            if getattr(self, 'book'):
-                itemid = itemid or self.book.identifier
-                with tempfile.NamedTemporaryFile() as tmp:
-                    tmp.write(json.dumps(self.results).encode())
-                    tmp.flush()
-                    ia.upload(itemid, {'%s_genome.json' % (itemid): tmp},
-                              access_key=s3_keys['access'],
-                              secret_key=s3_keys['secret'])
+        def upload(self):
+            Sequencer._upload(results=self.results)
 
         @property
         def results(self):
@@ -182,6 +176,16 @@ class Sequencer:
             raise Exception(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
             logging.error(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
 
+    @classmethod
+    def _upload(cls, results=None):
+        itemid = results.get('identifier')
+        with tempfile.NamedTemporaryFile() as tmp:
+            tmp.write(json.dumps(results).encode())
+            tmp.flush()
+            ia.upload(itemid, {'book_genome.json': tmp},
+                      access_key=s3_keys['access'],
+                      secret_key=s3_keys['secret'])
+
 DEFAULT_SEQUENCER = Sequencer({
     '2grams': NGramProcessor(modules={
         'term_freq': WordFreqModule()
@@ -193,6 +197,20 @@ DEFAULT_SEQUENCER = Sequencer({
     'fulltext': FulltextProcessor(modules={
         'readinglevel': ReadingLevelModule()
     }),
+    'pagetypes': PageTypeProcessor(modules={
+        'copyright_page': CopyrightPageDetectorModule(),
+        'backpage_isbn': BackpageIsbnExtractorModule()
+    })
+})
+
+MINIMAL_SEQUENCER = Sequencer({
+    '2grams': NGramProcessor(modules={
+        'term_freq': WordFreqModule()
+    }, n=2, threshold=2, stop_words=STOP_WORDS),
+    '1grams': NGramProcessor(modules={
+        'term_freq': WordFreqModule(),
+        'urls': UrlExtractorModule()
+    }, n=1, stop_words=None),
     'pagetypes': PageTypeProcessor(modules={
         'copyright_page': CopyrightPageDetectorModule(),
         'backpage_isbn': BackpageIsbnExtractorModule()

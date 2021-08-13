@@ -321,7 +321,7 @@ class KeywordPageDetectorModule:
         if not self.match_limit or len(self.matched_pages) < self.match_limit:
             for word in page.iter('WORD'):
                 if word.text.lower() in self.keywords:
-                    param = page[0].attrib['value'].split('.')[0]
+                    param = page[0].attrib['value'].split('.djvu')[0]
                     current_page = param[-4:]
                     match = {
                         'page': current_page,
@@ -359,9 +359,9 @@ class BackpageIsbnExtractorModule():
         self.isbns = []
 
     def run(self, page, node):
-        current_page = int(page[0].attrib['value'].split('.')[0][-4:])
+        current_page = int(page[0].attrib['value'].split('.djvu')[0][-4:])
         if not hasattr(self, 'last_page'):
-            self.last_page = int(node.xpath("//OBJECT")[-1][0].attrib['value'].split('.')[0][-4:])
+            self.last_page = int(node.xpath("//OBJECT")[-1][0].attrib['value'].split('.djvu')[0][-4:])
         if current_page == self.last_page:
             self.isbns = IsbnExtractorModule.extract_isbn(page)
 
