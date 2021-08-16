@@ -192,98 +192,102 @@ In many cases a developer may find that the package's out-of-the-box `bgp.DEFAUL
 This is the reference schema used in genome json files:
 ```json
 {
-  "identifier": "(ia identifier)",
-  "version": "(commit)",
-  "timestamp": "r(Unix Epoch)",
-  "sequence_time": "r(sequence process seconds)",
-  "source": {
-    "txt": {
-      "time": "r(txt download seconds)",
-      "bytes": "r(txt bytes)"
-    },
-    "xml": {
-      "time": "r(xml download seconds)",
-      "bytes": "r(xml bytes)"
-    }
-  },
-  "1grams": {
-    "tokenization_time": "r(1gram tokenization process seconds)",
-    "total_tokens": "r(1gram count)",
-    "total_time": "r(1gram processor process seconds)",
-    "modules": {
-      "urls": {
-        "time": "r(url process seconds)",
-        "results": [
-          "(url)"
-        ]
+  "metadata": {
+    "identifier": "(ia identifier)",
+    "version": "(commit)",
+    "timestamp": "r(Unix Epoch)",
+    "sequence_time": "r(sequence process seconds)",
+    "source": {
+      "txt": {
+        "time": "r(txt download seconds)",
+        "bytes": "r(txt bytes)"
       },
-      "term_freq": {
-        "time": "r(1gram frequency process seconds)",
-        "results": [
-          [
-            "(1gram)",
-            "r(1gram frequency)"
-          ]
-        ]
+      "xml": {
+        "time": "r(xml download seconds)",
+        "bytes": "r(xml bytes)"
       }
-    }
-  },
-  "2grams": {
-    "tokenization_time": "r(2gram tokenization process seconds)",
-    "total_tokens": "r(2gram count)",
-    "total_time": "r(2gram processor process seconds)",
-    "modules": {
-      "term_freq": {
-        "time": "r(2gram frequency process seconds)",
-        "results": [
-          [
-            "(2gram)",
-            "r(2gram frequency)"
-          ]
-        ]
-      }
-    }
-  },
-  "fulltext": {
-    "total_time": "r(fulltext processor process seconds)",
-    "modules": {
-      "readinglevel": {
-        "time": "r(reading level process seconds)",
-        "results": {
-          "readability": {
-            "flesch_kincaid_score": "r(flesch kincaid score)",
-            "smog_score": "r(smog score)"
+    },
+    "processors": {
+      "1gram": {
+        "tokenization_time": "r(1gram tokenization process seconds)",
+        "total_tokens": "r(1gram count)",
+        "total_time": "r(1gram processor process seconds)",
+        "modules": {
+          "urls": {
+            "time": "r(url process seconds)"
           },
-          "lexile": {
-            "min_age": "(Lower age in range)",
-            "max_age": "(Upper age in range)"
+          "1grams": {
+            "time": "r(1gram frequency process seconds)"
+          }
+        }
+      },
+      "2gram": {
+        "tokenization_time": "r(2gram tokenization process seconds)",
+        "total_tokens": "r(2gram count)",
+        "total_time": "r(2gram processor process seconds)",
+        "modules": {
+          "2grams": {
+            "time": "r(2gram frequency process seconds)"
+          }
+        }
+      },
+      "fulltext": {
+        "total_time": "r(fulltext processor process seconds)",
+        "modules": {
+          "readinglevel": {
+            "time": "r(reading level process seconds)"
+          }
+        }
+      },
+      "pagetypes": {
+        "total_time": "r(pagetype processor process seconds)",
+        "modules": {
+          "copyright_page": {
+            "time": "r(copyright page process seconds)"
+          },
+          "backpage_isbn": {
+            "time": "r(copyright page process seconds)"
           }
         }
       }
     }
   },
-  "pagetypes": {
-    "total_time": "r(pagetype processor process seconds)",
-    "modules": {
-      "copyright_page": {
-        "time": "r(copyright page process seconds)",
-        "results": [
-          {
-            "page": "(copyright page)",
-            "isbns": [
+  "urls": [
+              "(url)"
+            ],
+  "1grams": [
+              [
+                "(1gram)",
+                "r(1gram frequency)"
+              ]
+            ],
+  "2grams": [
+              [
+                "(2gram)",
+                "r(2gram frequency)"
+              ]
+            ],
+  "readinglevel": {
+              "readability": {
+                "flesch_kincaid_score": "r(flesch kincaid score)",
+                "smog_score": "r(smog score)"
+              },
+              "lexile": {
+                "min_age": "(Lower age in range)",
+                "max_age": "(Upper age in range)"
+              }
+            },
+  "copyright_page": [
+              {
+                "page": "(copyright page)",
+                "isbns": [
+                  "(isbn)"
+                ]
+              }
+            ],
+  "backpage_isbn": [
               "(isbn)"
             ]
-          }
-        ]
-      },
-      "backpage_isbn": {
-        "results": [
-          "(isbn)"
-        ],
-        "time": "r(copyright page process seconds)",
-      }
-    }
-  }
 }
 ```
 
