@@ -130,11 +130,14 @@ class Sequencer:
             processors = {}
             for processor in self.pipeline:
                 processor_meta = self.pipeline[processor].results
+                # Remove module results from processor metadata dict
                 processor_meta.update({'modules': {}})
                 processors.update({processor: processor_meta})
                 for module in self.pipeline[processor].modules:
+                    # Add module results to root level of dict
                     data[module] = self.pipeline[processor].results['modules'][module]['results']
                     module_meta = self.pipeline[processor].results['modules'][module]
+                    # Remove module results from module metadata dict
                     module_meta.pop('results')
                     processors[processor]['modules'].update({module: module_meta})
             meta['processors'] = processors
