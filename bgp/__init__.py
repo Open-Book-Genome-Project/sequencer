@@ -191,7 +191,7 @@ class Sequencer:
 
     @classmethod
     def _upload(cls, results=None):
-        itemid = results.get('identifier')
+        itemid = results.get('metadata').get('identifier')
         with tempfile.NamedTemporaryFile() as tmp:
             tmp.write(json.dumps(results).encode())
             tmp.flush()
