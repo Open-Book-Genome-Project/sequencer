@@ -42,20 +42,20 @@ Once you've install either the production code or build your developer code, you
 Let's say you want to process the book https://archive.org/details/hpmor which has identifier `hpmor` on Archive.org. First, you would define your Sequencer as follows:
 
 ```python
->>> from bgp import Sequencer, STOP_WORDS
->>> from bgp.modules.terms import NGramProcessor, WordFreqModule
->>> s = Sequencer({
-...     'words': NGramProcessor(modules={
-...         'term_freq': WordFreqModule()
-...     }, n=1, stop_words=STOP_WORDS)
-... })
+from bgp import Sequencer, STOP_WORDS
+from bgp.modules.terms import NGramProcessor, WordFreqModule
+s = Sequencer({
+    'words': NGramProcessor(modules={
+        'term_freq': WordFreqModule()
+    }, n=1, stop_words=STOP_WORDS)
+})
 ```
 
 Then, you would pass this book identifier into the Sequencer to sequence the book to get back a genome Sequence object:
 
 ```python
->>> genome = s.sequence('hpmor')
->>> genome.results
+genome = s.sequence('hpmor')
+genome.results
 ```
 
 ## Saving & Uploading Results
@@ -73,9 +73,9 @@ You will then be able to see your file `hpmor_results.json` within the `bgp` ite
 If you want to run a default test to make sure everything works, try:
 
 ```python
->>> from bgp import DEFAULT_SEQUENCER
->>> genome = DEFAULT_SEQUENCER.sequence('9780262517638OpenAccess')
->>> genome.results
+from bgp import DEFAULT_SEQUENCER
+genome = DEFAULT_SEQUENCER.sequence('9780262517638OpenAccess')
+genome.results
 ```
 
 ## Using pipeline.py
