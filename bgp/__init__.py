@@ -64,7 +64,7 @@ def _memoize_xml(self):
             raise Exception('Timeout getting xml for item - ' + self.identifier)
         _memoize_xml_toc = time.perf_counter()
         self.xml_time = round(_memoize_xml_toc - _memoize_xml_tic, 3)
-        self.xml_mem_kb = sys.getsizeof(self._xml)
+        self.xml_bytes = sys.getsizeof(self._xml)
     return self._xml
 
 def _memoize_plaintext(self):
@@ -77,7 +77,7 @@ def _memoize_plaintext(self):
             raise Exception('Timeout getting txt for item - ' + self.identifier)
         _memoize_plaintext_toc = time.perf_counter()
         self.plaintext_time = round(_memoize_plaintext_toc - _memoize_plaintext_tic, 3)
-        self.plaintext_mem_kb = sys.getsizeof(self._plaintext)
+        self.plaintext_bytes = sys.getsizeof(self._plaintext)
     return self._plaintext
 
 def get_book_items(query, rows=100, page=1, scope_all=False):
@@ -109,7 +109,7 @@ class Sequencer:
     class Sequence:
         def __init__(self, pipeline):
             self.pipeline = pipeline
-            self.total_time = 0
+            self.sequence_time = 0
 
         def save(self, path=''):
             item_path = path + self.book.identifier + '/'
@@ -125,21 +125,37 @@ class Sequencer:
 
         @property
         def results(self):
-            data = {p: self.pipeline[p].results for p in self.pipeline}
-            data['total_time'] = self.total_time
-            if hasattr(self.book, 'xml_time'):
-                data['_memoize_xml'] = {
+            data = {}
+            meta = {}
+            processors = {}
+            for processor in self.pipeline:
+                processor_meta = self.pipeline[processor].results
+                # Remove module results from processor metadata dict
+                processor_meta.update({'modules': {}})
+                processors.update({processor: processor_meta})
+                for module in self.pipeline[processor].modules:
+                    # Add module results to root level of dict
+                    data[module] = self.pipeline[processor].results['modules'][module]['results']
+                    module_meta = self.pipeline[processor].results['modules'][module]
+                    # Remove module results from module metadata dict
+                    module_meta.pop('results')
+                    processors[processor]['modules'].update({module: module_meta})
+            meta['processors'] = processors
+            meta['sequence_time'] = self.sequence_time
+            meta['source'] = {
+                'xml': {
                     'time': self.book.xml_time,
-                    'kb': self.book.xml_mem_kb
-                }
-            if hasattr(self.book, 'plaintext_time'):
-                data['_memoize_plaintext'] = {
+                    'bytes': self.book.xml_bytes
+                },
+                'txt': {
                     'time': self.book.plaintext_time,
-                    'kb': self.book.plaintext_mem_kb
+                    'bytes': self.book.plaintext_bytes
                 }
-            data['version'] = get_software_version()
-            data['timestamp'] = time.time()
-            data['identifier'] = self.book.identifier
+            }
+            meta['version'] = get_software_version()
+            meta['timestamp'] = time.time()
+            meta['identifier'] = self.book.identifier
+            data['metadata'] = meta
             return data
 
     def __init__(self, pipeline):
@@ -164,7 +180,7 @@ class Sequencer:
                 for p in sq.pipeline:
                     sq.pipeline[p].run(sq.book)
                 sequence_toc = time.perf_counter()
-                sq.total_time = round(sequence_toc - sequence_tic, 3)
+                sq.sequence_time = round(sequence_toc - sequence_tic, 3)
                 return sq
             else:
                 raise Exception(sq.book.identifier + ' - Item cannot be found.')
@@ -178,7 +194,7 @@ class Sequencer:
 
     @classmethod
     def _upload(cls, results=None):
-        itemid = results.get('identifier')
+        itemid = results.get('metadata').get('identifier')
         with tempfile.NamedTemporaryFile() as tmp:
             tmp.write(json.dumps(results).encode())
             tmp.flush()
@@ -187,11 +203,11 @@ class Sequencer:
                       secret_key=s3_keys['secret'])
 
 DEFAULT_SEQUENCER = Sequencer({
-    '2grams': NGramProcessor(modules={
-        'term_freq': WordFreqModule()
+    '2gram': NGramProcessor(modules={
+        '2grams': WordFreqModule()
     }, n=2, threshold=2, stop_words=STOP_WORDS),
-    '1grams': NGramProcessor(modules={
-        'term_freq': WordFreqModule(),
+    '1gram': NGramProcessor(modules={
+        '1grams': WordFreqModule(),
         'urls': UrlExtractorModule()
     }, n=1, stop_words=None),
     'fulltext': FulltextProcessor(modules={
@@ -204,11 +220,11 @@ DEFAULT_SEQUENCER = Sequencer({
 })
 
 MINIMAL_SEQUENCER = Sequencer({
-    '2grams': NGramProcessor(modules={
-        'term_freq': WordFreqModule()
+    '2gram': NGramProcessor(modules={
+        '2grams': WordFreqModule()
     }, n=2, threshold=2, stop_words=STOP_WORDS),
-    '1grams': NGramProcessor(modules={
-        'term_freq': WordFreqModule(),
+    '1gram': NGramProcessor(modules={
+        '1grams': WordFreqModule(),
         'urls': UrlExtractorModule()
     }, n=1, stop_words=None),
     'pagetypes': PageTypeProcessor(modules={

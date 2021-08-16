@@ -42,20 +42,20 @@ Once you've install either the production code or build your developer code, you
 Let's say you want to process the book https://archive.org/details/hpmor which has identifier `hpmor` on Archive.org. First, you would define your Sequencer as follows:
 
 ```python
->>> from bgp import Sequencer, STOP_WORDS
->>> from bgp.modules.terms import NGramProcessor, WordFreqModule
->>> s = Sequencer({
-...     'words': NGramProcessor(modules={
-...         'term_freq': WordFreqModule()
-...     }, n=1, stop_words=STOP_WORDS)
-... })
+from bgp import Sequencer, STOP_WORDS
+from bgp.modules.terms import NGramProcessor, WordFreqModule
+s = Sequencer({
+    'words': NGramProcessor(modules={
+        'term_freq': WordFreqModule()
+    }, n=1, stop_words=STOP_WORDS)
+})
 ```
 
 Then, you would pass this book identifier into the Sequencer to sequence the book to get back a genome Sequence object:
 
 ```python
->>> genome = s.sequence('hpmor')
->>> genome.results
+genome = s.sequence('hpmor')
+genome.results
 ```
 
 ## Saving & Uploading Results
@@ -73,9 +73,9 @@ You will then be able to see your file `hpmor_results.json` within the `bgp` ite
 If you want to run a default test to make sure everything works, try:
 
 ```python
->>> from bgp import DEFAULT_SEQUENCER
->>> genome = DEFAULT_SEQUENCER.sequence('9780262517638OpenAccess')
->>> genome.results
+from bgp import DEFAULT_SEQUENCER
+genome = DEFAULT_SEQUENCER.sequence('9780262517638OpenAccess')
+genome.results
 ```
 
 ## Using pipeline.py
@@ -192,95 +192,102 @@ In many cases a developer may find that the package's out-of-the-box `bgp.DEFAUL
 This is the reference schema used in genome json files:
 ```json
 {
-  "version": "(commit)",
-  "timestamp": "r(Unix Epoch)",
-  "total_time": "r(sequence process seconds)",
-  "_memoize_plaintext": {
-    "time": "r(txt download seconds)",
-    "kb": "r(txt bytes)"
-  },
-  "_memoize_xml": {
-    "time": "r(xml download seconds)",
-    "kb": "r(xml bytes)"
-  },
-  "1grams": {
-    "tokenization_time": "r(1gram tokenization process seconds)",
-    "total_tokens": "r(1gram count)",
-    "total_time": "r(1gram processor process seconds)",
-    "modules": {
-      "urls": {
-        "time": "r(url process seconds)",
-        "results": [
-          "(url)"
-        ]
+  "metadata": {
+    "identifier": "(ia identifier)",
+    "version": "(commit)",
+    "timestamp": "r(Unix Epoch)",
+    "sequence_time": "r(sequence process seconds)",
+    "source": {
+      "txt": {
+        "time": "r(txt download seconds)",
+        "bytes": "r(txt bytes)"
       },
-      "term_freq": {
-        "time": "r(1gram frequency process seconds)",
-        "results": [
-          [
-            "(1gram)",
-            "r(1gram frequency)"
-          ]
-        ]
+      "xml": {
+        "time": "r(xml download seconds)",
+        "bytes": "r(xml bytes)"
       }
-    }
-  },
-  "2grams": {
-    "tokenization_time": "r(2gram tokenization process seconds)",
-    "total_tokens": "r(2gram count)",
-    "total_time": "r(2gram processor process seconds)",
-    "modules": {
-      "term_freq": {
-        "time": "r(2gram frequency process seconds)",
-        "results": [
-          [
-            "(2gram)",
-            "r(2gram frequency)"
-          ]
-        ]
-      }
-    }
-  },
-  "fulltext": {
-    "total_time": "r(fulltext processor process seconds)",
-    "modules": {
-      "readinglevel": {
-        "time": "r(reading level process seconds)",
-        "results": {
-          "readability": {
-            "flesch_kincaid_score": "r(flesch kincaid score)",
-            "smog_score": "r(smog score)"
+    },
+    "processors": {
+      "1gram": {
+        "tokenization_time": "r(1gram tokenization process seconds)",
+        "total_tokens": "r(1gram count)",
+        "total_time": "r(1gram processor process seconds)",
+        "modules": {
+          "urls": {
+            "time": "r(url process seconds)"
           },
-          "lexile": {
-            "min_age": "(Lower age in range)",
-            "max_age": "(Upper age in range)"
+          "1grams": {
+            "time": "r(1gram frequency process seconds)"
+          }
+        }
+      },
+      "2gram": {
+        "tokenization_time": "r(2gram tokenization process seconds)",
+        "total_tokens": "r(2gram count)",
+        "total_time": "r(2gram processor process seconds)",
+        "modules": {
+          "2grams": {
+            "time": "r(2gram frequency process seconds)"
+          }
+        }
+      },
+      "fulltext": {
+        "total_time": "r(fulltext processor process seconds)",
+        "modules": {
+          "readinglevel": {
+            "time": "r(reading level process seconds)"
+          }
+        }
+      },
+      "pagetypes": {
+        "total_time": "r(pagetype processor process seconds)",
+        "modules": {
+          "copyright_page": {
+            "time": "r(copyright page process seconds)"
+          },
+          "backpage_isbn": {
+            "time": "r(copyright page process seconds)"
           }
         }
       }
     }
   },
-  "pagetypes": {
-    "total_time": "r(pagetype processor process seconds)",
-    "modules": {
-      "copyright_page": {
-        "time": "r(copyright page process seconds)",
-        "results": [
-          {
-            "page": "(copyright page)",
-            "isbns": [
+  "urls": [
+              "(url)"
+            ],
+  "1grams": [
+              [
+                "(1gram)",
+                "r(1gram frequency)"
+              ]
+            ],
+  "2grams": [
+              [
+                "(2gram)",
+                "r(2gram frequency)"
+              ]
+            ],
+  "readinglevel": {
+              "readability": {
+                "flesch_kincaid_score": "r(flesch kincaid score)",
+                "smog_score": "r(smog score)"
+              },
+              "lexile": {
+                "min_age": "(Lower age in range)",
+                "max_age": "(Upper age in range)"
+              }
+            },
+  "copyright_page": [
+              {
+                "page": "(copyright page)",
+                "isbns": [
+                  "(isbn)"
+                ]
+              }
+            ],
+  "backpage_isbn": [
               "(isbn)"
             ]
-          }
-        ]
-      },
-      "backpage_isbn": {
-        "results": [
-          "(isbn)"
-        ],
-        "time": "r(copyright page process seconds)"
-      }
-    }
-  }
 }
 ```
 

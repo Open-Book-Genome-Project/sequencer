@@ -94,12 +94,12 @@ def db_sequence_failure(identifier, exception):
 def get_canonical_isbn(genome):
     c_isbns = None
     b_isbns = None
-    if genome['pagetypes']['modules']['copyright_page']['results']:
+    if genome['copyright_page']:
         # ISBN's extracted from copyright page
-        c_isbns = genome['pagetypes']['modules']['copyright_page']['results'][0]['isbns']
-    if genome['pagetypes']['modules']['backpage_isbn']['results']:
+        c_isbns = genome['copyright_page'][0]['isbns']
+    if genome['backpage_isbn']:
         # ISBN's extracted from back page
-        b_isbns = genome['pagetypes']['modules']['backpage_isbn']['results']
+        b_isbns = genome['backpage_isbn']
 
     if c_isbns and b_isbns and any(x in c_isbns for x in b_isbns):
         # Return matching ISBN from copyright page and back page
@@ -118,7 +118,7 @@ def update_isbn(genome):
     Considers any ISBN-like identifiers extracted from the book's sequenced genome
     in order to identify a canonical ISBN for this books.
     """
-    itemid = genome.get('identifier')
+    itemid = genome.get('metadata').get('identifier')
     # Checks if ia item already has isbn
     item = ia.get_item(itemid)
     metadata = item.item_metadata['metadata']
@@ -147,8 +147,8 @@ def extract_urls(genome):
     """
     Save item's extracted urls to database.
     """
-    itemid = genome.get('identifier')
-    urls = set([url for url in genome['1grams']['modules']['urls']['results'] if 'archive.org' not in url])
+    itemid = genome.get('metadata').get('identifier')
+    urls = set([url for url in genome['urls'] if 'archive.org' not in url])
     db_urls_found(itemid, urls)
 
 
