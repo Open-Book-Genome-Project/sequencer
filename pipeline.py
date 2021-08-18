@@ -11,7 +11,8 @@ from bgp import MINIMAL_SEQUENCER, ia
 parser = argparse.ArgumentParser(prog='[pipeline]',
                                  description='Automate Open Book Genome Project sequencer')
 
-parser.add_argument('--processes',
+parser.add_argument('-p',
+                    '--processes',
                     action='store',
                     metavar='process-count',
                     type=int,
@@ -34,7 +35,7 @@ if not os.path.isfile(input_path):
     print('The path specified does not exist')
     sys.exit()
 
-RESULTS_PATH = 'results/bgp_results/'
+RESULTS_PATH = 'results/' + input_path.split('.jsonl')[0] + '/'
 books = []
 
 
