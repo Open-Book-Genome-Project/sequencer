@@ -1,0 +1,7 @@
+services:
+  bgp:
+    build: .
+    volumes:
+      - $OBGP_DIR:/sequencer/results
+      - $OBGP_S3:/root/.ia
+    command: tail -F anything
