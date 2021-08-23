@@ -96,7 +96,7 @@ The pipeline then automatically chooses the most probable isbn for the book and 
 | How do we determine the ISBNs of all books we’ve sequenced so far    | Touches `ISBN_1234567890_{identifier}`    |
 | How do we determine which books were sequenced but had no ISBN     | Touches `UPDATE_NONE_{identifier}`    |
 | How do we know which books attempted updating but failed     | `UPDATE_FAILED_{identifier}`     |
-| How do we know which books succeeded at updating and succeed     | `UPDATE_SUCCEEDED_{identifier}`     |
+| How do we know which books succeeded at updating and succeed     | `UPDATE_SUCCEED_{identifier}`     |
 | How do we know if item already has isbn metadata and is skipped     | `UPDATE_CONFLICT_{identifier}`     |
 | How do we know how many new urls were found in a book     | `URLS_{number_of_urls}_{identifier}`     |
 
