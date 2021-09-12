@@ -35,6 +35,18 @@ cd sequencer  # change into project directory
 pip install -e .  # install the library (and re-run in project root as you make changes)
 ```
 
+### Docker Usage
+First, create a directory called `obgp_dir` if it doesn't already exist.
+`mkdir -p obgp_dir`
+
+Next, while in the sequencer directory, run: `export OBGP_S3=~/.config/ia.ini OBGP_DIR=./obgp_dir
+docker compose up`
+
+Use `docker container ls` to get container ID.
+Then `docker exec -it CONTAINER_ID /bin/sh` replacing the container ID with the actual ID
+
+You should now be in the container shell and can execute commands!
+
 ## Usage
 
 Once you've install either the production code or build your developer code, you may proceed to start python and import the `runner.pipeline` with whatever modules you'd like.
