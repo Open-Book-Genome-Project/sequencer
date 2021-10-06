@@ -144,12 +144,12 @@ class Sequencer:
             meta['sequence_time'] = self.sequence_time
             meta['source'] = {
                 'xml': {
-                    'time': self.book.xml_time,
-                    'bytes': self.book.xml_bytes
+                    'time': getattr(self.book, 'xml_time', None),
+                    'bytes': getattr(self.book, 'xml_bytes', None)
                 },
                 'txt': {
-                    'time': self.book.plaintext_time,
-                    'bytes': self.book.plaintext_bytes
+                    'time': getattr(self.book, 'plaintext_time', None),
+                    'bytes': getattr(self.book, 'plaintext_bytes', None),
                 }
             }
             meta['version'] = get_software_version()
