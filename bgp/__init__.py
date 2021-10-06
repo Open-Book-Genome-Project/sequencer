@@ -145,7 +145,7 @@ class Sequencer:
             meta['source'] = {
                 'xml': {
                     'time': getattr(self.book, 'xml_time', None),
-                    'bytes': getattr(self.book, 'xml_bytes', None)
+                    'bytes': getattr(self.book, 'xml_bytes', None),
                 },
                 'txt': {
                     'time': getattr(self.book, 'plaintext_time', None),
