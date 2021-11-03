@@ -31,6 +31,7 @@ from bgp.modules.terms import (
     UrlExtractorModule,
     WordFreqModule,
     CopyrightPageDetectorModule,
+    ChapterPageDetectorModule,
     PageTypeProcessor,
     BackpageIsbnExtractorModule
 )
@@ -159,6 +160,9 @@ class Sequencer:
             return data
 
     def __init__(self, pipeline):
+        """
+        :param dict pipeline
+        """
         self.pipeline = pipeline
 
     def sequence(self, book):
@@ -177,8 +181,8 @@ class Sequencer:
                 raise Exception('Connection error retrieving metadata for - ' + book)
                 logging.error('Connection error retrieving metadata for - ' + book)
             if sq.book.exists:
-                for p in sq.pipeline:
-                    sq.pipeline[p].run(sq.book)
+                for processor in sq.pipeline:
+                    sq.pipeline[processor].run(sq.book)
                 sequence_toc = time.perf_counter()
                 sq.sequence_time = round(sequence_toc - sequence_tic, 3)
                 return sq
