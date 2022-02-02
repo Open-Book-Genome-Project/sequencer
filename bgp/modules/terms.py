@@ -353,6 +353,12 @@ class CopyrightPageDetectorModule(KeywordPageDetectorModule):
         super().__init__(['copyright', '©'], extractor=self.extractor, match_limit=1)
 
 
+class TocPageDetectorModule(KeywordPageDetectorModule):
+
+    def __init__(self):
+        super().__init__(['contents', 'table of contents'], match_limit=1)
+
+
 class BackpageIsbnExtractorModule():
 
     def __init__(self):
