@@ -359,13 +359,11 @@ class TocPageDetectorModule(KeywordPageDetectorModule):
         super().__init__(["table of content"], match_limit=1)
 
     def detectTocHeading(self, page):
-        for line in page.iter('LINE'):
-            heading = ""
-            for word in line.iter('WORD'):
-                heading = heading + " " + word.text
-            if heading.lower().strip() in self.keywords:
+        for i, line in enumerate(page.iter('LINE')):
+            if i < 5:  # if we're in the first few lines
+            words = " ".join(line.iter('WORD')).lower().strip()
+            if any(kws == words for kws in self.keywords):
                 return True
-        
         return False
 
 
