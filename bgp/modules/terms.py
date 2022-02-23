@@ -356,7 +356,7 @@ class CopyrightPageDetectorModule(KeywordPageDetectorModule):
 class TocPageDetectorModule(KeywordPageDetectorModule):
 
     def __init__(self):
-        super().__init__(["table of content"], match_limit=1)
+        super().__init__(["table of contents"], match_limit=1)
 
     def detectTocHeading(self, page):
         for i, line in enumerate(page.iter('LINE')):
