@@ -1,8 +1,10 @@
+version: "3.1"
 services:
-  bgp:
+  obgp:
     build: .
     volumes:
       - ./:/sequencer
       - $OBGP_DIR:/sequencer/results
       - $OBGP_S3:/root/.ia
     command: tail -F anything
+    container_name: obgp
