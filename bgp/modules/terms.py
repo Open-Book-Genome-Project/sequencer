@@ -186,7 +186,7 @@ def rmpunk(word, punctuation=PUNCTUATION):
     )
 
 def replace_mistakes(word):
-    substitutions = [('I', '1'), ('O', '0'), ('l', '1'), ('D', '0'), ('A', '8'), ('/', 'X'), ('\\', 'X'), ('S', '5')]
+    substitutions = [('I', '1'), ('O', '0'), ('l', '1'), ('S', '5')]
     for sub in substitutions:
         word = word.replace(*sub)
     return word
