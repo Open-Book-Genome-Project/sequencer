@@ -10,8 +10,9 @@ from readability import Readability
 from readability.scorers.flesch_kincaid import ReadabilityException
 
 
-PUNCTUATION = r'!"#$%&\'\/:()*+,.-;<=>?@[\\]^`{|}*'
+PUNCTUATION = r'!"#$%&\'\/:()*+,.-;<=>?@[\\]^`{|}*'  # this needs improving
 STOP_WORDS = set("""'d 'll 'm 're 's 've a about above across after afterwards
+~ ! $ > = < + . & ee es a b c d e f g h i j k l m n o p q r s t u v w x y z
 again against all almost alone along already also although always am among
 amongst amount an and another any anyhow anyone anything anyway anywhere are
 around as at back be became because become becomes becoming been before
@@ -169,7 +170,10 @@ class NGramProcessor():
         def clean(fulltext):
             return (
                 fulltext.lower()
+                .replace('’', "'")
                 .replace('. ', ' ')
+                .replace('! ', ' ')
+                .replace('? ', ' ')
                 .replace('\n-', '')
                 .replace('\n', ' ')
             )
@@ -177,7 +181,8 @@ class NGramProcessor():
             t.strip() for t in clean(fulltext).split(' ')
             if t and t not in stop_words
         ]
-        return cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
+        ngrams = cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
+        return ngrams
 
 def rmpunk(word, punctuation=PUNCTUATION):
     return ''.join(
@@ -203,7 +208,10 @@ class WordFreqModule:
             word, punctuation=self.punctuation
         )
         self.threshold = threshold
-        self.freqmap[clean_word] += 1
+        # we could add more advanced regex to
+        # check if clean_word is something we care about
+        if clean_word and not clean_word.startswith(" ") and not clean_word.endswith(" "):
+            self.freqmap[clean_word] += 1
 
     @property
     def results(self):

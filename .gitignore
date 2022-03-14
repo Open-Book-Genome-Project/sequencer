@@ -1,3 +1,4 @@
+.ia.ini
 *.pyc
 *~
 settings.cfg
@@ -6,3 +7,4 @@ obgp.egg-info/
 bgp_results*
 obgp_errors.log
 .idea/
+obgp_dir/
