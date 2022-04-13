@@ -203,9 +203,12 @@ class Sequencer:
                       secret_key=s3_keys['secret'])
 
 DEFAULT_SEQUENCER = Sequencer({
+    '3gram': NGramProcessor(modules={
+        '3grams': WordFreqModule()
+    }, n=3, threshold=2, stop_words=None),
     '2gram': NGramProcessor(modules={
         '2grams': WordFreqModule()
-    }, n=2, threshold=2, stop_words=STOP_WORDS),
+    }, n=2, threshold=3, stop_words=STOP_WORDS),
     '1gram': NGramProcessor(modules={
         '1grams': WordFreqModule(),
         'urls': UrlExtractorModule()

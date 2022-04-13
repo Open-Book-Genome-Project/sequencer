@@ -10,34 +10,7 @@ from readability import Readability
 from readability.scorers.flesch_kincaid import ReadabilityException
 
 
-PUNCTUATION = r'!"#$%&\'\/:()*+,.-;<=>?@[\\]^`{|}*'
-STOP_WORDS = set("""'d 'll 'm 're 's 've a about above across after afterwards
-again against all almost alone along already also although always am among
-amongst amount an and another any anyhow anyone anything anyway anywhere are
-around as at back be became because become becomes becoming been before
-beforehand behind being below beside besides between beyond both bottom but by
-ca call can cannot could did do does doing done down due during each eight
-either eleven else elsewhere empty enough even ever every everyone everything
-everywhere except few fifteen fifty first five for former formerly forty four
-from front full further get give go had has have he hence her here hereafter
-hereby herein hereupon hers herself him himself his how however hundred i if
-in indeed into is it its itself just keep last latter latterly least less made
-make many may me meanwhile might mine more moreover most mostly move much must
-my myself n't name namely neither never nevertheless next nine no nobody none
-noone nor not nothing now nowhere n‘t n’t of off often on once one only onto
-or other others otherwise our ours ourselves out over own part per perhaps
-please put quite rather re really regarding same say see seem seemed seeming
-seems serious several she should show side since six sixty so some somehow
-someone something sometime sometimes somewhere still such take ten than that
-the their them themselves then thence there thereafter thereby therefore
-therein thereupon these they third this those though three through throughout
-thru thus to together too top toward towards twelve twenty two under unless
-until up upon us used using various very via was we well were what whatever
-when whence whenever where whereafter whereas whereby wherein whereupon
-wherever whether which while whither who whoever whole whom whose why will
-with within without would yet you your yours yourself yourselves ‘d ‘ll ‘m ‘re
-‘s ‘ve ’d ’ll ’m ’re ’s ’ve""".split())
-
+PUNCTUATION = r'!"#$%&\'\/:()*+,.-;<=>?@[\\]^`{|}*'  # this needs improving
 
 class FulltextProcessor():
 
@@ -117,6 +90,8 @@ class NGramProcessor():
 
     def __init__(self, modules, n=1, threshold=None, stop_words=None):
         """
+        ngram processor takes a book of plaintext, splits the contents into tokens, and then passes them into each of its modules
+        the word frequency module is a common module for this processor
         :param lambda modules: a dict of {'name': module}
         :param int n: n-gram sequence length
         :param int threshold: min occurrences threshold
@@ -169,7 +144,10 @@ class NGramProcessor():
         def clean(fulltext):
             return (
                 fulltext.lower()
+                .replace('’', "'")
                 .replace('. ', ' ')
+                .replace('! ', ' ')
+                .replace('? ', ' ')
                 .replace('\n-', '')
                 .replace('\n', ' ')
             )
@@ -177,7 +155,8 @@ class NGramProcessor():
             t.strip() for t in clean(fulltext).split(' ')
             if t and t not in stop_words
         ]
-        return cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
+        ngrams = cls.tokens_to_ngrams(tokens, n=n) if n > 1 else tokens
+        return ngrams
 
 def rmpunk(word, punctuation=PUNCTUATION):
     return ''.join(
@@ -203,7 +182,10 @@ class WordFreqModule:
             word, punctuation=self.punctuation
         )
         self.threshold = threshold
-        self.freqmap[clean_word] += 1
+        # we could add more advanced regex to
+        # check if clean_word is something we care about
+        if clean_word and not clean_word.startswith(" ") and not clean_word.endswith(" "):
+            self.freqmap[clean_word] += 1
 
     @property
     def results(self):
