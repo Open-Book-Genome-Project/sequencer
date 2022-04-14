@@ -309,8 +309,10 @@ class KeywordPageDetectorModule:
 
     def run(self, page, node):
         if not self.match_limit or len(self.matched_pages) < self.match_limit:
-            for word in page.iter('WORD'):
-                if word.text.lower() in self.keywords:
+            # We think there's a better way to get text from the page
+            page_text = ' '.join([word.text for word in page.iter('WORD')])
+            for keyword in self.keywords:
+                if re.search(keyword, page_text, re.IGNORECASE):
                     param = page[0].attrib['value'].split('.djvu')[0]
                     current_page = param[-4:]
                     match = {
@@ -328,6 +330,11 @@ class KeywordPageDetectorModule:
             "results": self.matched_pages,
             "time": self.time
         }
+
+class ChapterPageDetectorModule(KeywordPageDetectorModule):
+
+    def __init__(self):
+        super().__init__([r'chap[.,]?(ter)? [0-9ivx]+'], match_limit=None)
 
 
 class CopyrightPageDetectorModule(KeywordPageDetectorModule):
