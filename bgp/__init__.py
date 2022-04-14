@@ -12,7 +12,6 @@ __author__ = 'OBGP'
 import copy
 import json
 import logging
-import nltk
 import os
 import requests
 import sys
@@ -47,12 +46,6 @@ s3_keys = get_config().get('s3')
 
 IA = ia.get_session(s3_keys)
 ia.get_item = IA.get_item
-
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    print('Downloading Punkt Tokenizer...')
-    nltk.download('punkt')
 
 def _memoize_xml(self):
     if not hasattr(self, '_xml'):

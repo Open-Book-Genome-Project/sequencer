@@ -6,9 +6,6 @@ import requests
 import time
 from lxml import etree
 
-from readability import Readability
-from readability.scorers.flesch_kincaid import ReadabilityException
-
 
 PUNCTUATION = r'!"#$%&\'\/:()*+,.-;<=>?@[\\]^`{|}*'  # this needs improving
 
@@ -46,6 +43,17 @@ class ReadingLevelModule:
         self.time = 0
 
     def run(self, book, **kwargs):
+        import nltk
+
+        try:
+            nltk.data.find('tokenizers/punkt')
+        except LookupError:
+            print('Downloading Punkt Tokenizer...')
+            nltk.download('punkt')
+
+        from readability import Readability
+        from readability.scorers.flesch_kincaid import ReadabilityException
+
         doc = book.plaintext
         isbn = 'isbn' in book.metadata and book.metadata['isbn'][0]
 
