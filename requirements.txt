@@ -1,5 +1,5 @@
 beautifulsoup4==4.9.0
-internetarchive==1.9.0
+internetarchive==3.0.0
 lxml==4.6.3
 configparser==4.0.2
 textstat==0.5.7
