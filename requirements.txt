@@ -5,3 +5,4 @@ configparser==4.0.2
 textstat==0.5.7
 py-readability-metrics==1.4.5
 isbnlib==3.10.7
+nltk==3.7
