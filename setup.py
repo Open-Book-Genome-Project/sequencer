@@ -20,7 +20,7 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name='obgp',
-    version='0.0.35',
+    version='0.0.36',
     description="Open Book Genome Project",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -31,12 +31,12 @@ setuptools.setup(
         'bgp',
         'bgp/modules'
         ],
-    keywords="open book genome analysis fulltext",
+    keywords="open book genome fulltext analysis",
     platforms='any',
     include_package_data=True,
-    license='LICENSE',
+    license='https://www.gnu.org/licenses/agpl-3.0.en.html',
     install_requires=install_requires,
     classifiers=[
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
         ],
 )
