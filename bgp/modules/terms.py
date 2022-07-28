@@ -36,8 +36,7 @@ class FulltextProcessor():
 class ReadingLevelModule:
 
     def __init__(self):
-        self.lexile_min_age= 'None'
-        self.lexile_max_age= 'None'
+        self.lexile = None
         self.readability_fk_score= None
         self.readability_s_score= None
         self.time = 0
@@ -65,9 +64,7 @@ class ReadingLevelModule:
         # If lexile does exist but no age range, value will be 'None'.
         # If no ISBN, value will be 'None'.
         if lexile.status_code == 200:
-            lexile_work = lexile.json()['data']['work']
-            self.lexile_min_age = str(lexile_work['min_age'])
-            self.lexile_max_age = str(lexile_work['max_age'])
+            self.lexile = lexile.json()
         try:
             r = Readability(doc)
             fk = r.flesch_kincaid()
@@ -83,10 +80,7 @@ class ReadingLevelModule:
         return {
             "time": self.time,
             "results": {
-                "lexile": {
-                    "min_age": self.lexile_min_age,
-                    "max_age": self.lexile_max_age
-                },
+                "lexile": self.lexile,
                 "readability": {
                     "flesch_kincaid_score": self.readability_fk_score,
                     "smog_score": self.readability_s_score,

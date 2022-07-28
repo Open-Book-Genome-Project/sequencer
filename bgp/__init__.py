@@ -43,11 +43,6 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S',
     filename='obgp_errors.log')
 
-s3_keys = get_config().get('s3')
-
-IA = ia.get_session(s3_keys)
-ia.get_item = IA.get_item
-
 def _memoize_xml(self):
     if not hasattr(self, '_xml'):
         _memoize_xml_tic = time.perf_counter()
@@ -74,6 +69,9 @@ def _memoize_plaintext(self):
         self.plaintext_bytes = sys.getsizeof(self._plaintext)
     return self._plaintext
 
+ia.Item.xml = property(_memoize_xml)
+ia.Item.plaintext = property(_memoize_plaintext)
+
 def get_book_items(query, rows=100, page=1, scope_all=False):
     """
     :param str query: an search query for selecting/faceting books
@@ -93,17 +91,15 @@ def get_software_version():  # -> str:
     return str(Popen(cmd, stdout=PIPE, stderr=STDOUT).stdout.read().decode().strip())
 
 
-ia.get_book_items = get_book_items
-ia.Item.xml = property(_memoize_xml)
-ia.Item.plaintext = property(_memoize_plaintext)
-
-
 class Sequencer:
 
     class Sequence:
-        def __init__(self, pipeline):
+        def __init__(self, pipeline, book, access=None, secret=None):
             self.pipeline = pipeline
             self.sequence_time = 0
+            self.book = book
+            self.access = access
+            self.secret = secret
 
         def save(self, path=''):
             item_path = path + self.book.identifier + '/'
@@ -115,7 +111,13 @@ class Sequencer:
                     txt.write(json.dumps(self.results))
 
         def upload(self):
-            Sequencer._upload(results=self.results)
+            itemid = self.results.get('metadata').get('identifier')
+            with tempfile.NamedTemporaryFile() as tmp:
+                tmp.write(json.dumps(self.results).encode())
+                tmp.flush()
+                self.ia.upload(itemid, {'book_genome.json': tmp},
+                               access_key=self.access,
+                               secret_key=self.secret)
 
         @property
         def results(self):
@@ -152,11 +154,21 @@ class Sequencer:
             data['metadata'] = meta
             return data
 
-    def __init__(self, pipeline):
+    def __init__(self, pipeline, access=None, secret=None):
         """
         :param dict pipeline
         """
         self.pipeline = pipeline
+        self.configure(
+            access=access or get_config().get('s3', {}).get('access'),
+            secret=secret or get_config().get('s3', {}).get('secret')
+        )
+
+    def configure(self, access=None, secret=None):
+        self.access = access
+        self.secret = secret
+        self.ia = ia.get_session({'s3': {'access': access, 'secret': secret}})
+        self.ia.get_book_items = get_book_items
 
     def sequence(self, book):
         """
@@ -167,9 +179,15 @@ class Sequencer:
         """
         try:
             sequence_tic = time.perf_counter()
-            sq = self.Sequence(copy.deepcopy(self.pipeline))
             try:
-                sq.book = book if type(book) is ia.Item else ia.get_item(book)
+                # possible conflict since ia.Item not from ia.get_session
+                _book = book if type(book) is ia.Item else self.ia.get_item(book)
+                sq = self.Sequence(
+                    copy.deepcopy(self.pipeline),
+                    _book,
+                    access=self.access,
+                    secret=self.secret
+                )
             except requests.exceptions.ConnectionError:
                 raise Exception('Connection error retrieving metadata for - ' + book)
                 logging.error('Connection error retrieving metadata for - ' + book)
@@ -189,15 +207,6 @@ class Sequencer:
             raise Exception(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
             logging.error(sq.book.identifier + ' - DjvuXML and/or DjvuTXT is forbidden and can\'t be sequenced!')
 
-    @classmethod
-    def _upload(cls, results=None):
-        itemid = results.get('metadata').get('identifier')
-        with tempfile.NamedTemporaryFile() as tmp:
-            tmp.write(json.dumps(results).encode())
-            tmp.flush()
-            ia.upload(itemid, {'book_genome.json': tmp},
-                      access_key=s3_keys['access'],
-                      secret_key=s3_keys['secret'])
 
 DEFAULT_SEQUENCER = Sequencer({
     '3gram': NGramProcessor(modules={
