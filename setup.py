@@ -16,11 +16,20 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 with open("requirements.txt", "r", encoding="utf-8") as fh:
     install_requires = fh.read()
-    print(install_requires)
+
+with open("bgp/__init__.py", "r", encoding="utf-8") as fh:
+    version_file = fh.read()
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        version = version_match.group(1)
+    else:
+        raise RuntimeError("Unable to find version string.")
+
 
 setuptools.setup(
     name='obgp',
-    version='0.0.36',
+    version=version,
     description="Open Book Genome Project",
     long_description=long_description,
     long_description_content_type="text/markdown",
