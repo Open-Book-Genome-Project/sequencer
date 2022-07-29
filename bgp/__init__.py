@@ -8,6 +8,7 @@
 
 __title__ = 'bgp'
 __author__ = 'OBGP'
+__version__ = '0.0.42'
 
 import copy
 import json
@@ -87,8 +88,7 @@ def get_book_items(query, rows=100, page=1, scope_all=False):
     return ia.search_items(query, params=params).iter_as_items()
 
 def get_software_version():  # -> str:
-    cmd = "git rev-parse --short HEAD --".split()
-    return str(Popen(cmd, stdout=PIPE, stderr=STDOUT).stdout.read().decode().strip())
+    return __version__
 
 
 class Sequencer:
