@@ -11,6 +11,7 @@ def get_isbns(query="")
 def get_lexile(isbn):
     try:
         r = requests.get("TODO")
+        r.raise_for_status()  # this will raise an error for us if the http status returned is not 200 OK
         r.json()
     except Exception as e:
         # make sure successes and failures go in `log`
