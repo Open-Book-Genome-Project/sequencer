@@ -344,6 +344,30 @@ class CopyrightPageDetectorModule(KeywordPageDetectorModule):
         super().__init__(['copyright', '©'], extractor=self.extractor, match_limit=1)
 
 
+class TocPageDetectorModule(KeywordPageDetectorModule):
+
+    def __init__(self):
+        super().__init__(["table of contents"], match_limit=1)
+
+    def detectTocHeading(self, page):
+        for i, line in enumerate(page.iter('LINE')):
+            if i < 5:  # if we're in the first few lines
+            words = " ".join(line.iter('WORD')).lower().strip()
+            if any(kws == words for kws in self.keywords):
+                return True
+        return False
+
+
+    def run(self, page, node):
+        if not self.match_limit or len(self.matched_pages) < self.match_limit:
+            if self.detectTocHeading(page):
+                param = page[0].attrib['value'].split('.djvu')[0]
+                current_page = param[-4:]
+                match = {
+                    'page': current_page,
+                }
+                self.matched_pages.append(match)
+
 class BackpageIsbnExtractorModule():
 
     def __init__(self):
